@@ -1,12 +1,13 @@
-// main.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import './frontend/utils/colors.dart';
-import './frontend/screens/home_page.dart';
-import './frontend/screens/vote_page.dart';
-import './frontend/screens/notifications_page.dart';
-import './frontend/screens/profile_page.dart';
+import './frontend/screens/login_page.dart';
+import './frontend/screens/dashboard.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -23,104 +24,25 @@ class MyApp extends StatelessWidget {
           secondary: AppColors.accent,
         ),
       ),
-      home: MainPage(),
+      home: AuthWrapper(),
     );
   }
 }
 
-class MainPage extends StatefulWidget {
-  @override
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int _currentIndex = 0;
-  late PageController _pageController;
-
-  final List<Widget> _pages = [
-    HomePage(),
-    VotePage(),
-    NotificationsPage(),
-    ProfilePage(),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
+class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView.builder(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        physics: const BouncingScrollPhysics(),
-        itemCount: _pages.length,
-        itemBuilder: (context, index) {
-          return _pages[index];
-        },
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1), // Couleur de l'ombre
-              spreadRadius: 0,
-              blurRadius: 8,
-              offset: const Offset(0, -2), // Ombre vers le haut
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.secondary,
-          backgroundColor: AppColors.background,
-          type: BottomNavigationBarType.fixed,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            _pageController.jumpToPage(index);
-          },
-          items: [
-            _buildBottomNavItem(Icons.home, 'Home', 0),
-            _buildBottomNavItem(Icons.how_to_vote, 'Vote', 1),
-            _buildBottomNavItem(Icons.notifications, 'Notifications', 2),
-            _buildBottomNavItem(Icons.person, 'Profil', 3),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BottomNavigationBarItem _buildBottomNavItem(IconData icon, String label, int index) {
-    return BottomNavigationBarItem(
-      icon: Column(
-        children: [
-          if (_currentIndex == index)
-            Container(
-              margin: const EdgeInsets.only(bottom: 4), // Espace sous la barre
-              height: 3,
-              width: 28,
-              color: AppColors.primary,
-            ),
-          Icon(icon),
-        ],
-      ),
-      label: label,
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData) {
+          return Dashboard(); // Accès à la navigation principale
+        } else {
+          return LoginPage(); // Redirige vers la page de connexion
+        }
+      },
     );
   }
 }
