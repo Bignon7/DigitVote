@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import './frontend/utils/colors.dart';
-import './frontend/screens/login_page.dart';
-import './frontend/screens/dashboard.dart';
+import 'package:digit_vote/backend/providers/user_provider.dart';
+import 'dart:async';
+import './frontend/screens/welcome_page.dart';
+//import './frontend/screens/email_testyy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,9 +16,11 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    /* return MaterialApp(
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'Nunito',
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.light(
@@ -24,25 +28,60 @@ class MyApp extends StatelessWidget {
           secondary: AppColors.accent,
         ),
       ),
-      home: AuthWrapper(),
+    );*/
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) => UserProvider()..fetchUserData(context)),
+      ],
+      child: MaterialApp(
+        home: SplashScreen(),
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'Nunito',
+          primaryColor: AppColors.primary,
+          scaffoldBackgroundColor: AppColors.background,
+          colorScheme: ColorScheme.light(
+            primary: AppColors.primary,
+            secondary: AppColors.accent,
+          ),
+        ),
+      ),
     );
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => WelcomePage()),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasData) {
-          return Dashboard(); // Accès à la navigation principale
-        } else {
-          return LoginPage(); // Redirige vers la page de connexion
-        }
-      },
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: Center(
+        child: Text(
+          'Votify',
+          style: TextStyle(
+            fontSize: 34,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }

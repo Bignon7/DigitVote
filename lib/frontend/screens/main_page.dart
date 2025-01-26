@@ -1,11 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:digit_vote/backend/providers/user_provider.dart';
+import '../utils/colors.dart';
 import './home_page.dart';
-import './vote_page.dart';
+import './scrutin_page.dart';
 import './notifications_page.dart';
 import './profile_page.dart';
-import '../utils/colors.dart';
+import './login_page.dart';
+import './succespage.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Nunito',
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.background,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primary,
+          secondary: AppColors.accent,
+        ),
+      ),
+      home: AuthWrapper(),
+      routes: {
+        '/success': (context) => SuccessPage(),
+      },
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+
+    if (user != null) {
+      return MainPage();
+    } else {
+      return LoginPage();
+    }
+  }
+}
 
 class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
+
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -16,7 +72,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     HomePage(),
-    VotePage(),
+    ScrutinPage(),
     NotificationsPage(),
     ProfilePage(),
   ];
@@ -35,7 +91,50 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userData = userProvider.userData;
+
+    if (userData == null) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final username = userData['nom'] ?? 'Utilisateur';
+    final imageUrl = userData['image_url'] ?? '';
+
     return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Bonjour,",
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+            Text(
+              username,
+              style: TextStyle(color: Colors.grey[700], fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundImage: (imageUrl.isEmpty ||
+                      !Uri.tryParse(imageUrl)!.isAbsolute)
+                  ? AssetImage('assets/images/default2.png') as ImageProvider
+                  : NetworkImage(imageUrl),
+              radius: 20,
+            ),
+          ),
+        ],
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: PageView.builder(
         controller: _pageController,
         onPageChanged: (index) {
@@ -45,13 +144,16 @@ class _MainPageState extends State<MainPage> {
         },
         physics: const BouncingScrollPhysics(),
         itemCount: _pages.length,
-        itemBuilder: (context, index) => _pages[index],
+        itemBuilder: (context, index) {
+          return _pages[index];
+        },
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
+              spreadRadius: 0,
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -67,12 +169,13 @@ class _MainPageState extends State<MainPage> {
             setState(() {
               _currentIndex = index;
             });
+
             _pageController.jumpToPage(index);
           },
           items: [
-            _buildBottomNavItem(Icons.home, 'Home', 0),
+            _buildBottomNavItem(Icons.home, 'Accueil', 0),
             _buildBottomNavItem(Icons.how_to_vote, 'Vote', 1),
-            _buildBottomNavItem(Icons.notifications, 'Notifications', 2),
+            _buildBottomNavItem(Icons.settings, 'Mes scrutins', 2),
             _buildBottomNavItem(Icons.person, 'Profil', 3),
           ],
         ),
@@ -83,17 +186,9 @@ class _MainPageState extends State<MainPage> {
   BottomNavigationBarItem _buildBottomNavItem(
       IconData icon, String label, int index) {
     return BottomNavigationBarItem(
-      icon: Column(
-        children: [
-          if (_currentIndex == index)
-            Container(
-              margin: const EdgeInsets.only(bottom: 4),
-              height: 3,
-              width: 28,
-              color: AppColors.primary,
-            ),
-          Icon(icon),
-        ],
+      icon: Icon(
+        icon,
+        color: _currentIndex == index ? AppColors.primary : AppColors.secondary,
       ),
       label: label,
     );

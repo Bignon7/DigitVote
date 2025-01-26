@@ -1,5 +1,6 @@
 Nos couleurs
 #2FB364
+#40C76D //vert_happy
 #929291
 #E6E7E6
 #1D7128
@@ -7,3 +8,34 @@ Nos couleurs
 #69695C
 #000000
 #F91212
+
+
+
+J'ai remplacé ton inscrireUtilisateur par  
+Future<User?> inscrireUtilisateur(
+      String email, String password, String nom) async {
+    try {
+      // Création d'un utilisateur avec Firebase Auth
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Ajout des détails de l'utilisateur dans Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'id': userCredential.user!.uid,
+        'nom': nom,
+        'email': email,
+        'image_url': '',
+        'date_inscription': FieldValue.serverTimestamp(),
+        'scrutins_crees': [],
+        'votes': [],
+      });
+
+      return userCredential.user;
+    } catch (e) {
+      print('Erreur lors de l\'inscription : $e');
+      return null;
+    }
+  }
