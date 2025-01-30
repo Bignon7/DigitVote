@@ -1,3 +1,4 @@
+import 'package:digit_vote/frontend/screens/charts_page.dart';
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import 'scrutin_form.dart';
@@ -76,7 +77,7 @@ class HomeOne extends StatelessWidget {
                 //Navigator.pushNamed(context, '/accueil');
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CreateScrutinForm()),
+                  MaterialPageRoute(builder: (context) => ScrutinForm()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -172,7 +173,10 @@ class HomeTwo extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Action pour accéder à la liste des scrutins
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ResultsPage()),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

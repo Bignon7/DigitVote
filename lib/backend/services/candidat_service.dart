@@ -38,11 +38,9 @@ class CandidatService {
     return _candidatsCollection
         .where('scrutin_id', isEqualTo: scrutinId)
         .snapshots()
-        .map((querySnapshot) {
-      return querySnapshot.docs.map((doc) {
-        return Candidat.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
-    });
+        .map((querySnapshot) => querySnapshot.docs.map((doc) {
+              return Candidat.fromMap(doc.data() as Map<String, dynamic>);
+            }).toList());
   }
 
   // Mettre à jour un candidat

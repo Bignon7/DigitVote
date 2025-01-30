@@ -11,12 +11,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SuccessScreen(),
+      home: SuccessCandidat(),
     );
   }
 }
 
-class SuccessScreen extends StatelessWidget {
+class SuccessCandidat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,14 +27,14 @@ class SuccessScreen extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Column(
-                  //mainAxisSize: MainAxisSize.min,
+                  // mainAxisSize: MainAxisSize.min,
                   children: [
                     Lottie.asset(
                       'assets/animations/Animation1.json',
                       height: 350,
                       repeat: true,
                     ),
-                    //SizedBox(height: 20),
+                    SizedBox(height: 20),
                     Text(
                       "Bingo !",
                       style: TextStyle(
@@ -45,7 +45,7 @@ class SuccessScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "Scrutin créé avec succès.",
+                      "Candidat ajouté avec succès.",
                       style: TextStyle(
                         fontSize: 20,
                         color: Colors.grey[700],

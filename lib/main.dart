@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import './frontend/utils/colors.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
 import 'dart:async';
@@ -8,8 +9,12 @@ import './frontend/screens/welcome_page.dart';
 //import './frontend/screens/email_testyy.dart';
 
 void main() async {
+  const supabaseUrl = 'https://aazzaadoagikcnvicxll.supabase.co';
+  const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhenphYWRvYWdpa2NudmljeGxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwNDYyMDgsImV4cCI6MjA1MzYyMjIwOH0.2XP2W-TBUk0rjXXbK9Q5LXwX8raJqO0Z_F5WzE5Sae8';
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
   runApp(MyApp());
 }
 

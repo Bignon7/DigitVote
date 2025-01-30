@@ -202,7 +202,8 @@ class _ScrutinPageState extends State<ScrutinPage> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    VoteCandidatsPage(),
+                                                    VoteCandidatsPage(
+                                                        scrutinId: "se"),
                                               ),
                                             );
                                           } else if (statut == "Terminé") {

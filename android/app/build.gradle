@@ -49,6 +49,7 @@ dependencies {
   implementation ('com.google.firebase:firebase-auth:21.0.1')
   implementation ('com.google.firebase:firebase-core:21.0.0')
   implementation ('com.google.firebase:firebase-firestore:24.0.0')
+  implementation 'androidx.appcompat:appcompat:1.4.0'
 
   // TODO: Add the dependencies for Firebase products you want to use
 }

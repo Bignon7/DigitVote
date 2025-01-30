@@ -1,103 +1,460 @@
 import 'package:flutter/material.dart';
+import '../utils/colors.dart';
 import '../../backend/services/candidat_service.dart';
 import '../../backend/services/scrutin_service.dart';
 import '../../backend/models/candidat.dart';
+import '../../backend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../backend/services/supabase_service.dart';
+import 'success_candidat.dart';
+import '../utils/custom_loader.dart';
+import 'dart:io';
 
-class CreateCandidatForm extends StatefulWidget {
+class CandidatFormSequence extends StatefulWidget {
   final String scrutinId;
-  CreateCandidatForm({required this.scrutinId});
+  final int nombreTotal;
+
+  const CandidatFormSequence({
+    Key? key,
+    required this.scrutinId,
+    required this.nombreTotal,
+  }) : super(key: key);
 
   @override
-  _CreateCandidatFormState createState() => _CreateCandidatFormState();
+  _CandidatFormSequenceState createState() => _CandidatFormSequenceState();
 }
 
-class _CreateCandidatFormState extends State<CreateCandidatForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _nomController = TextEditingController();
-  final _biographieController = TextEditingController();
-  final _posteController = TextEditingController();
-  final _imageController = TextEditingController();
-  final CandidatService _candidatService = CandidatService();
-  final ScrutinService _scrutinService = ScrutinService();
+class _CandidatFormSequenceState extends State<CandidatFormSequence> {
+  int currentIndex = 0;
 
-  // Validation pour les champs
-  String? _validateField(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Ce champ est requis';
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        if (currentIndex > 0) {
+          setState(() {
+            currentIndex--;
+          });
+          return false;
+        }
+        return true;
+      },
+      child: CandidatPage(
+        scrutinId: widget.scrutinId,
+        candidatNumber: currentIndex + 1,
+        totalCandidats: widget.nombreTotal,
+        onSave: (success) {
+          if (success) {
+            if (currentIndex < widget.nombreTotal - 1) {
+              setState(() {
+                currentIndex++;
+              });
+            } else {
+              //Navigator.popUntil(context, (route) => route.isFirst);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SuccessCandidat()),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+}
+
+class CandidatPage extends StatefulWidget {
+  final String scrutinId;
+  final int candidatNumber;
+  final int totalCandidats;
+  final Function(bool) onSave;
+
+  const CandidatPage({
+    Key? key,
+    required this.scrutinId,
+    required this.candidatNumber,
+    required this.totalCandidats,
+    required this.onSave,
+  }) : super(key: key);
+
+  @override
+  _CandidatPageState createState() => _CandidatPageState();
+}
+
+class _CandidatPageState extends State<CandidatPage> {
+  final TextEditingController _nomController = TextEditingController();
+  final TextEditingController _postController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final _imageController =
+      TextEditingController(text: "Aucune image sélectionnée");
+  final ScrutinService _scrutinService =
+      ScrutinService(candidatService: CandidatService());
+  bool _isLoading = false;
+  String imagePath = 'assets/images/default2.png';
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
+
+  // Validation States
+  String? _nomError;
+  String? _postError;
+  String? _descriptionError;
+  String? _imageError;
+
+  Future<void> pickImage() async {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageController.text = pickedFile.name;
+        _selectedImage = File(pickedFile.path);
+        _imageError = null;
+      });
     }
-    return null;
   }
 
-  void _submitCandidatForm() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final nom = _nomController.text;
-      final biographie = _biographieController.text;
-      final poste = _posteController.text;
-      final image = _imageController.text;
+  void validateFields() {
+    setState(() {
+      _nomError = _nomController.text.isEmpty
+          ? 'Veuillez entrer le nom du candidat'
+          : null;
+      _postError = _postController.text.isEmpty
+          ? 'Veuillez entrer le poste du candidat'
+          : null;
+      _descriptionError = _descriptionController.text.isEmpty
+          ? 'Veuillez entrer la biographie du candidat'
+          : null;
+      _imageError = _selectedImage == null
+          ? 'Veuillez sélectionner une image pour le candidat'
+          : null;
+    });
+  }
 
-      final candidat = Candidat(
-        id: '',
-        scrutinId: widget.scrutinId,
-        nom: nom,
-        biographie: biographie,
-        poste: poste,
-        image: image,
-        nombreVotes: 0,
+  bool isFormValid() {
+    validateFields();
+    return _nomError == null &&
+        _postError == null &&
+        _descriptionError == null &&
+        _imageError == null;
+  }
+
+  Future<void> saveCandidat() async {
+    if (!isFormValid()) return;
+
+    setState(() => _isLoading = true);
+
+    if (_selectedImage != null) {
+      final imageUrl = await SupabaseService().uploadImageForScrutin(
+        file: _selectedImage!,
+        bucketName: 'votify_files',
+        context: context,
       );
 
-      try {
-        final candidatId = await _candidatService.createCandidat(candidat);
-        await _scrutinService.addCandidatToScrutin(widget.scrutinId, candidat);
+      if (imageUrl != null) {
+        try {
+          final candidat = Candidat(
+            id: '',
+            nom: _nomController.text,
+            image: imageUrl,
+            biographie: _descriptionController.text,
+            nombreVotes: 0,
+            poste: _postController.text,
+            scrutinId: widget.scrutinId,
+          );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Candidat ajouté avec succès !')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de l\'ajout du candidat : $e')),
+          await _scrutinService.addCandidatToScrutin(
+              widget.scrutinId, candidat);
+          _nomController.clear();
+          _descriptionController.clear();
+          _postController.clear();
+          _imageController.clear();
+          setState(() {
+            imagePath = 'assets/images/default2.png';
+          });
+          widget.onSave(true);
+        } catch (e) {
+          setState(() => _isLoading = false);
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Erreur',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent)),
+              content: Text('Une erreur est survenue : ${e.toString()}'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+        } finally {
+          setState(() => _isLoading = false);
+        }
+      } else {
+        setState(() => _isLoading = false);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Erreur',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent)),
+            content: Text('Vous devez sélectionner une image valide'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
         );
       }
     }
   }
 
   @override
+  void dispose() {
+    _nomController.dispose();
+    _descriptionController.dispose();
+    _postController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userData = userProvider.userData;
+
+    if (userData == null) {
+      return Scaffold(
+        body: CustomLoader(),
+      );
+    }
+
+    final username = userData['nom'] ?? 'Utilisateur';
+    final imageUrl = userData['image_url'] ?? '';
     return Scaffold(
-      appBar: AppBar(title: Text('Ajouter un Candidat')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Bonjour,",
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+            Text(
+              username,
+              style: TextStyle(color: Colors.grey[700], fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundImage: (imageUrl.isEmpty ||
+                      !Uri.tryParse(imageUrl)!.isAbsolute)
+                  ? AssetImage('assets/images/default2.png') as ImageProvider
+                  : NetworkImage(imageUrl),
+              radius: 20,
+            ),
+          ),
+        ],
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _nomController,
-                decoration: InputDecoration(labelText: 'Nom du Candidat'),
-                validator: _validateField,
+              Center(
+                child: Text(
+                  'Candidat ${widget.candidatNumber}/${widget.totalCandidats}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _biographieController,
-                decoration: InputDecoration(labelText: 'Biographie'),
-                validator: _validateField,
+              const SizedBox(height: 40),
+              const Text(
+                'Nom et Prénom',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _posteController,
-                decoration: InputDecoration(labelText: 'Poste'),
-                validator: _validateField,
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: TextField(
+                  controller: _nomController,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(15),
+                  ),
+                ),
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _imageController,
-                decoration: InputDecoration(labelText: 'Image URL'),
-                validator: _validateField,
+              if (_nomError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _nomError!,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 20),
+              const Text(
+                'Poste',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitCandidatForm,
-                child: Text('Ajouter le Candidat'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: TextField(
+                  controller: _postController,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(15),
+                  ),
+                ),
+              ),
+              if (_postError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _postError!,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 20),
+              const Text(
+                'Photo',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: pickImage,
+                child: Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _imageController.text.split('/').last,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const Icon(Icons.folder_outlined,
+                          color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              ),
+              if (_imageError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _imageError!,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 20),
+              const Text(
+                'Biographie',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: TextField(
+                  controller: _descriptionController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(15),
+                  ),
+                ),
+              ),
+              if (_descriptionError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _descriptionError!,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () => widget.onSave(false),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF2FB364),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: _isLoading ? null : saveCandidat,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF2FB364),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Icon(
+                              Icons.save,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

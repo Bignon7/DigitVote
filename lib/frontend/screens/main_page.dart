@@ -3,12 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
 import '../utils/colors.dart';
-import './home_page.dart';
-import './scrutin_page.dart';
-import './notifications_page.dart';
-import './profile_page.dart';
-import './login_page.dart';
-import './succespage.dart';
+import 'home_page.dart';
+import 'scrutin_page.dart';
+import 'notifications_page.dart';
+import 'profile_page.dart';
+import 'login_page.dart';
+import 'succespage.dart';
+import '../utils/custom_loader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,9 +97,7 @@ class _MainPageState extends State<MainPage> {
 
     if (userData == null) {
       return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: CustomLoader(),
       );
     }
 

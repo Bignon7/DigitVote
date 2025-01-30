@@ -1,144 +1,432 @@
 import 'package:flutter/material.dart';
-
+import 'package:image_picker/image_picker.dart';
+import '../utils/colors.dart';
+import 'package:digit_vote/backend/providers/user_provider.dart';
 import '../../backend/services/scrutin_service.dart';
 import '../../backend/models/scrutin.dart';
-import 'candidat_form.dart';
+import 'package:provider/provider.dart';
+import '../utils/custom_loader.dart';
+import 'success_scrutin.dart';
+import 'dart:io';
+import '../../backend/services/supabase_service.dart';
 
-class CreateScrutinForm extends StatefulWidget {
+class ScrutinForm extends StatefulWidget {
   @override
-  _CreateScrutinFormState createState() => _CreateScrutinFormState();
+  _ScrutinFormState createState() => _ScrutinFormState();
 }
 
-class _CreateScrutinFormState extends State<CreateScrutinForm> {
+class _ScrutinFormState extends State<ScrutinForm> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
+  final _nomController = TextEditingController();
+  final _dateOuvertureController = TextEditingController();
+  final _dateClotureController = TextEditingController();
+  final _imageController =
+      TextEditingController(text: "Aucune imge sélectionnée");
   final _descriptionController = TextEditingController();
-  final _startDateController = TextEditingController();
-  final _endDateController = TextEditingController();
-  final _createurIdController = TextEditingController();
-  bool _isSecureVote =
-      false; // Ajouter un booléen pour savoir si la case est cochée
+  bool _isSecure = false;
+  bool _isLoading = false;
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
 
-  final ScrutinService _scrutinService = ScrutinService();
-
-  // Fonction de validation
-  String? _validateField(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Ce champ est requis';
+  Future<void> pickImage() async {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageController.text = pickedFile.name;
+        _selectedImage = File(pickedFile.path);
+      });
     }
-    return null;
   }
 
-  void _submitScrutinForm() async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2099),
+    );
+    if (picked != null) {
+      controller.text =
+          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+    }
+  }
+
+  void _submitScrutinForm(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
-      final title = _titleController.text;
-      final description = _descriptionController.text;
-      final startDate = DateTime.parse(_startDateController.text);
-      final endDate = DateTime.parse(_endDateController.text);
-      final createurId = _createurIdController.text;
-
-      // Créer un scrutin
-      final scrutin = Scrutin(
-        id: '',
-        titre: title,
-        description: description,
-        dateOuverture: startDate,
-        dateCloture: endDate,
-        createurId: createurId,
-        code: '',
-        voteMultiple: false,
-        candidatsIds: [],
-      );
-
-      // Si la case "Sécuriser le vote" est cochée, générer un code
-      if (_isSecureVote) {
-        scrutin.generateCode();
-      }
-
-      try {
-        final scrutinId = await _scrutinService.createScrutin(scrutin);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scrutin créé avec succès !')),
+      //partieimage
+      setState(() {
+        _isLoading = true;
+      });
+      if (_selectedImage != null) {
+        final imageUrl = await SupabaseService().uploadImageForScrutin(
+          file: _selectedImage!,
+          bucketName: 'votify_files',
+          context: context,
         );
 
-        // Aller vers la page d'ajout de candidats pour ce scrutin
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => CreateCandidatForm(scrutinId: scrutinId)),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la création : $e')),
-        );
+        if (imageUrl != null) {
+          // print('Image téléchargée avec succès : $imageUrl');
+          final titre = _nomController.text.trim();
+          final description = _descriptionController.text.trim();
+          final dateOuverture = DateTime.parse(_dateOuvertureController.text);
+          final dateCloture = DateTime.parse(_dateClotureController.text);
+
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          final userData = userProvider.userData;
+
+          final scrutin = Scrutin(
+            id: '',
+            titre: titre,
+            description: description,
+            dateOuverture: dateOuverture,
+            dateCloture: dateCloture,
+            createurId: userData?['id'],
+            code: '',
+            voteMultiple: false,
+            candidatsIds: [],
+            imageScrutin: imageUrl,
+          );
+          if (_isSecure) {
+            scrutin.generateCode();
+          }
+
+          try {
+            final ScrutinService _scrutinService = ScrutinService();
+            await _scrutinService.createScrutin(scrutin);
+            setState(() {
+              _isLoading = false;
+            });
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SuccessScreen()),
+            );
+          } catch (e) {
+            setState(() {
+              _isLoading = false;
+            });
+            _showErrorDialog(context, e.toString());
+          }
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog(
+            context, 'Veuillez sélectionner une image avant de télécharger.');
       }
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Erreur',
+            style: TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            )),
+        content: Text(errorMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userData = userProvider.userData;
+
+    if (userData == null) {
+      return Scaffold(
+        body: CustomLoader(),
+      );
+    }
+
+    final username = userData['nom'] ?? 'Utilisateur';
+    final imageUrl = userData['image_url'] ?? '';
     return Scaffold(
-      appBar: AppBar(title: Text('Créer un Scrutin')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: 'Titre du Scrutin'),
-                validator: _validateField,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-                validator: _validateField,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _startDateController,
-                decoration:
-                    InputDecoration(labelText: 'Date de début (YYYY-MM-DD)'),
-                validator: _validateField,
-                keyboardType: TextInputType.datetime,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _endDateController,
-                decoration:
-                    InputDecoration(labelText: 'Date de fin (YYYY-MM-DD)'),
-                validator: _validateField,
-                keyboardType: TextInputType.datetime,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _createurIdController,
-                decoration: InputDecoration(labelText: 'ID du créateur'),
-                validator: _validateField,
-              ),
-              SizedBox(height: 10),
-              // Ajouter la case à cocher "Sécuriser le vote"
-              CheckboxListTile(
-                title: Text("Sécuriser le vote"),
-                value: _isSecureVote,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _isSecureVote = value ?? false;
-                  });
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitScrutinForm,
-                child: Text('Créer le Scrutin'),
-              ),
-            ],
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Bonjour,",
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+            Text(
+              username,
+              style: TextStyle(color: Colors.grey[700], fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundImage: (imageUrl.isEmpty ||
+                      !Uri.tryParse(imageUrl)!.isAbsolute)
+                  ? AssetImage('assets/images/default2.png') as ImageProvider
+                  : NetworkImage(imageUrl),
+              radius: 20,
+            ),
+          ),
+        ],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text(
+                    "Créer un nouveau scrutin",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 20),
+                _buildTextField(
+                  "Nom du Scrutin",
+                  _nomController,
+                  Icons.check_circle,
+                  true,
+                ),
+                _buildDateField("Date d’ouverture", _dateOuvertureController),
+                _buildDateField("Date de clôture", _dateClotureController),
+                // Section Photo avec image picker
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Photo',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _imageController.text.split('/').last,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const Icon(Icons.folder_outlined,
+                                color: AppColors.primary),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+
+                _buildDescriptionField(),
+                _buildSwitchField(),
+                SizedBox(height: 30),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () => _submitScrutinForm(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Créer",
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDateField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          readOnly: true,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: Icon(Icons.calendar_today, color: AppColors.primary),
+          ),
+          onTap: () => _selectDate(context, controller),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez choisir une date';
+            }
+
+            final parsedDate = DateTime.tryParse(value);
+            if (parsedDate == null) {
+              return 'Format de date invalide. Utilisez YYYY-MM-DD.';
+            }
+
+            if (label == "Date de clôture" &&
+                _dateOuvertureController.text.isNotEmpty) {
+              final dateOuverture =
+                  DateTime.tryParse(_dateOuvertureController.text);
+              if (dateOuverture != null && parsedDate.isBefore(dateOuverture)) {
+                return 'La date de clôture doit être après la date d’ouverture';
+              }
+            }
+
+            return null;
+          },
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Description",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: _descriptionController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez fournir une description';
+            }
+            if (value.length < 10) {
+              return 'La description doit contenir au moins 10 caractères';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchField() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Sécuriser votre scrutin",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Switch(
+              value: _isSecure,
+              onChanged: (value) {
+                setState(() {
+                  _isSecure = value;
+                });
+              },
+              activeColor: const Color(0xFF2FB364),
+            ),
+          ],
+        ),
+        if (_isSecure)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              'Un code vous sera envoyé dans votre mail pour sécuriser votre vote',
+              style: TextStyle(color: Color(0xFF2FB364), fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTextField(
+      String label, TextEditingController controller, IconData icon,
+      [bool isValid = false]) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon:
+                Icon(icon, color: isValid ? AppColors.primary : Colors.grey),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez remplir ce champ';
+            }
+            return null;
+          },
+        ),
+        SizedBox(height: 16),
+      ],
     );
   }
 }

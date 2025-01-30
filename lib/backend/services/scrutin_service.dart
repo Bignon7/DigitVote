@@ -9,8 +9,8 @@ class ScrutinService {
   final CollectionReference _scrutinsCollection =
       FirebaseFirestore.instance.collection('scrutins');
 
-  final CollectionReference _candidatsCollection =
-      FirebaseFirestore.instance.collection('candidats');
+  // final CollectionReference _candidatsCollection =
+  //     FirebaseFirestore.instance.collection('candidats');
 
   final CandidatService? _candidatService;
 
@@ -45,6 +45,16 @@ class ScrutinService {
     });
   }
 
+/*Stream<List<Scrutin>> getActiveScrutins() {
+  return FirebaseFirestore.instance
+      .collection('scrutins')
+      .where('date_cloture', isGreaterThan: Timestamp.now())
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs.map((doc) => Scrutin.fromDocument(doc)).toList();
+      });
+}*/
+
   // Récupérer un scrutin par ID
   Future<Scrutin> getScrutinById(String id) async {
     final doc = await _scrutinsCollection.doc(id).get();
@@ -78,20 +88,21 @@ class ScrutinService {
     await _scrutinsCollection.doc(id).delete();
   }
 
-  // Ajouter un candidat à un scrutin
   Future<String> addCandidatToScrutin(
       String scrutinId, Candidat candidat) async {
-    final doc = await _scrutinsCollection.doc(scrutinId).get();
-    if (doc.exists) {
-      //final scrutin = Scrutin.fromMap(doc.data() as Map<String, dynamic>);
-      final candidatId =
-          await _candidatService?.createCandidat(candidat) ?? candidat.id;
+    try {
+      final scrutinDoc = await _scrutinsCollection.doc(scrutinId).get();
+      if (!scrutinDoc.exists) {
+        throw Exception("Scrutin introuvable !");
+      }
+      String candidatId = await _candidatService!.createCandidat(candidat);
       await updateScrutin(scrutinId, {
         'candidats_ids': FieldValue.arrayUnion([candidatId])
-      }); //cette méthode pour ne pas créer des doublons, c'est mieux que .add
+      });
       return candidatId;
-    } else {
-      throw Exception("Scrutin introuvable !");
+    } catch (e) {
+      throw Exception(
+          "Erreur lors de l'ajout du candidat au scrutin: ${e.toString()}");
     }
   }
 
@@ -109,23 +120,15 @@ class ScrutinService {
     }
   }
 
-  Future<List<Candidat>> getCandidatsByScrutin(String scrutinId) async {
-    final scrutinDoc = await _scrutinsCollection.doc(scrutinId).get();
-
-    if (scrutinDoc.exists) {
-      final data = scrutinDoc.data() as Map<String, dynamic>;
-      final List<String> candidatsIds =
-          List<String>.from(data['candidats_ids'] ?? []);
-
-      final querySnapshot = await _candidatsCollection
-          .where(FieldPath.documentId, whereIn: candidatsIds)
-          .get();
+  Stream<List<Candidat>> getCandidatsByScrutin(String scrutinId) {
+    return _scrutinsCollection
+        .where('scrutin_id', isEqualTo: scrutinId)
+        .snapshots()
+        .map((querySnapshot) {
       return querySnapshot.docs.map((doc) {
         return Candidat.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
-    } else {
-      throw Exception("Scrutin introuvable !");
-    }
+    });
   }
 
   Future<void> resetVotesForScrutin(String scrutinId) async {

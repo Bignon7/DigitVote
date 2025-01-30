@@ -10,6 +10,7 @@ class Scrutin {
   List<String> _candidatsIds;
   String _code;
   bool _voteMultiple;
+  String? imageScrutin;
 
   Scrutin({
     required String id,
@@ -21,6 +22,7 @@ class Scrutin {
     required List<String> candidatsIds,
     required String code,
     required bool voteMultiple,
+    this.imageScrutin,
   })  : _id = id,
         _createurId = createurId,
         _titre = titre,
@@ -127,6 +129,7 @@ class Scrutin {
       'candidats_ids': _candidatsIds,
       'code': _code,
       'vote_multiple': _voteMultiple,
+      if (imageScrutin != null) 'image_scrutin': imageScrutin,
     };
   }
 
@@ -142,6 +145,7 @@ class Scrutin {
       candidatsIds: List<String>.from(map['candidats_ids']),
       code: map['code'],
       voteMultiple: map['vote_multiple'],
+      imageScrutin: map['image_scrutin'],
     );
   }
 

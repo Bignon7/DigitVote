@@ -7,149 +7,81 @@ import '../utils/colors.dart';
 import 'scrutin_details.dart';
 import '../utils/custom_loader.dart';
 
-class NotificationsPage extends StatefulWidget {
-  @override
-  _NotificationsPageState createState() => _NotificationsPageState();
-}
-
-class _NotificationsPageState extends State<NotificationsPage> {
+class NotificationsPage extends StatelessWidget {
   final ScrutinService scrutinService = ScrutinService();
-  List<Scrutin> displayedScrutins = [];
-  List<Scrutin> allScrutins = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadScrutins();
-  }
-
-  Future<void> _loadScrutins() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    if (userProvider.user == null) {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text("Utilisateur non authentifié. Veuillez vous connecter."),
-        ),
-      );
-      return;
-    }
-    final userId = userProvider.user!.uid;
-    scrutinService.getScrutinsByCreateur(userId).listen((scrutins) {
-      setState(() {
-        allScrutins = scrutins;
-        displayedScrutins = scrutins;
-        isLoading = false;
-      });
-    });
-  }
-
-  void filterScrutins(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        displayedScrutins = allScrutins;
-      } else {
-        displayedScrutins = allScrutins.where((scrutin) {
-          return scrutin.titre.toLowerCase().contains(query.toLowerCase()) ||
-              scrutin.description.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      }
-    });
-  }
-
-  Widget buildEmptyListMessage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/no_data.png',
-            height: 150,
-          ),
-          SizedBox(height: 20),
-          Text(
-            "Aucun scrutin disponible",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+    final userId = userProvider.user!.uid;
+
+    if (user == null) {
+      return Center(
+        child: Text(
+          "Erreur : utilisateur non authentifié.",
+          style: TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Mes scrutins',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        centerTitle: true,
         backgroundColor: AppColors.primary,
+        centerTitle: true,
       ),
       body: SafeArea(
-        child: isLoading
-            ? Center(child: CustomLoader())
-            : Column(
-                children: [
-                  // Barre de recherche
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        onChanged: filterScrutins,
-                        decoration: InputDecoration(
-                          hintText: 'Rechercher un scrutin',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          suffixIcon: Icon(Icons.search, color: Colors.grey),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 12),
-                        ),
-                      ),
+        child: StreamBuilder<List<Scrutin>>(
+          stream: scrutinService.getScrutinsByCreateur(userId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CustomLoader());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  "Erreur lors du chargement des scrutins.",
+                  style: TextStyle(color: Colors.red),
+                ),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox, size: 100, color: Colors.grey[400]),
+                    SizedBox(height: 20),
+                    Text(
+                      "Aucun scrutin créé.",
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
-                  ),
+                  ],
+                ),
+              );
+            }
 
-                  // Liste des scrutins
-                  Expanded(
-                    child: displayedScrutins.isEmpty
-                        ? buildEmptyListMessage()
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(20),
-                            itemCount: displayedScrutins.length,
-                            itemBuilder: (context, index) {
-                              final scrutin = displayedScrutins[index];
+            final scrutins = snapshot.data!;
 
-                              return Column(
-                                children: [
-                                  _buildScrutinCard(scrutin, context),
-                                  SizedBox(height: 20),
-                                ],
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: scrutins.length,
+              itemBuilder: (context, index) {
+                final scrutin = scrutins[index];
+                return Column(
+                  children: [
+                    _buildScrutinCard(scrutin, context),
+                    SizedBox(height: 20),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

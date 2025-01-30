@@ -4,7 +4,7 @@ class Vote {
   String _id;
   String _electeurId;
   String _scrutinId;
-  String _candidatId; // Chiffré pour sécuriser le vote
+  String _candidatId; // ceci sera chiffré pour sécuriser le vote
   DateTime _dateVote;
 
   Vote({
@@ -70,7 +70,7 @@ class Vote {
     };
   }
 
-  // Création à partir d'un document Firestore
+  // Récupération à partir d'un document Firestore
   factory Vote.fromMap(Map<String, dynamic> map) {
     return Vote(
       id: map['id'],
@@ -81,21 +81,19 @@ class Vote {
     );
   }
 
-  // Chiffrer le candidat_id
+  // Fonction pour chiffrer l'id d'un candidat
   static String encryptCandidatId(String candidatId, String key) {
     final keyBytes = encrypt.Key.fromUtf8(key);
     final iv = encrypt.IV.fromLength(16);
     final encrypter = encrypt.Encrypter(encrypt.AES(keyBytes));
-
     return encrypter.encrypt(candidatId, iv: iv).base64;
   }
 
-  // Déchiffrer le candidat_id
+  // Fonction pour déchiffrer l'id d'un candidat
   static String decryptCandidatId(String encryptedId, String key) {
     final keyBytes = encrypt.Key.fromUtf8(key);
     final iv = encrypt.IV.fromLength(16);
     final encrypter = encrypt.Encrypter(encrypt.AES(keyBytes));
-
     return encrypter.decrypt64(encryptedId, iv: iv);
   }
 }

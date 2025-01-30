@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './signup_page.dart';
 import './main_page.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -15,6 +16,33 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  Future<UserCredential?> _signInWithGoogle() async {
+    try {
+      // Déclencher le flux de connexion Google
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) return null;
+
+      // Obtenir les détails d'authentification de la requête
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Créer un nouvel identifiant
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Connecter l'utilisateur avec Firebase
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      _showErrorDialog(
+          'Une erreur s\'est produite lors de la connexion avec Google.');
+      return null;
+    }
+  }
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -93,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
 
-            // Section formulaire avec fond blanc arrondi
+            // Section formulaire (mise à jour avec Google Sign-In)
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -110,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 30),
-                        // Email Field
+                        // Email Field (inchangé)
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
@@ -126,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Password Field
+                        // Password Field (inchangé)
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
@@ -156,6 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: 32),
+                        // Bouton de connexion email/mot de passe (inchangé)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -210,8 +239,80 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        // Séparateur "OU"
+                        Row(
+                          children: [
+                            Expanded(child: Divider(color: Colors.grey[400])),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'OU',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: Colors.grey[400])),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        // Bouton Google
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              try {
+                                final userCredential =
+                                    await _signInWithGoogle();
+                                if (userCredential?.user != null) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MyApp()),
+                                  );
+                                }
+                              } finally {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: BorderSide(color: Colors.grey[300]!),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/google_logo.jpg',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Continuer avec Google',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 32),
-                        // Sign Up Link
+                        // Sign Up Link (inchangé)
                         Center(
                           child: GestureDetector(
                             onTap: () {

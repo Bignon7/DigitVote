@@ -60,6 +60,35 @@ class BackendService {
     }
   }
 
+  Future<User?> inscrireUtilisateurGoogle(
+      String email, String displayName) async {
+    try {
+      // L'utilisateur est déjà créé par Firebase Auth lors de la connexion Google
+      final currentUser = _auth.currentUser;
+
+      if (currentUser != null) {
+        // Ajout des détails de l'utilisateur dans Firestore avec la même structure
+        await _firestore.collection('users').doc(currentUser.uid).set({
+          'id': currentUser.uid,
+          'nom': displayName,
+          'email': email,
+          'image_url': currentUser.photoURL ??
+              '', // On utilise la photo Google si disponible
+          'date_inscription': FieldValue.serverTimestamp(),
+          'scrutins_crees': [],
+          'votes': [],
+        });
+
+        return currentUser;
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur lors de l\'inscription avec Google : $e');
+      return null;
+    }
+  }
+
   Future<User?> connecterUtilisateur(String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(

@@ -1,33 +1,8 @@
-/*import 'package:flutter/material.dart';
-
-class ResultsPage extends StatelessWidget {
-  final String scrutinId;
-
-  const ResultsPage({Key? key, required this.scrutinId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Résultats du scrutin',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.blue,
-      ),
-      body: Center(
-        child: Text(
-          'Résultats pour le scrutin ID: $scrutinId',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-}*/
-
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-//import 'candidat_detail.dart';
+import 'package:digit_vote/backend/services/candidat_service.dart'; // Importation de ton service
+import '../utils/custom_loader.dart';
+import '../../backend/models/candidat.dart';
 
 class ResultsPage extends StatefulWidget {
   final String scrutinId;
@@ -49,31 +24,23 @@ class _ResultsPageState extends State<ResultsPage> {
     _loadResultsForScrutin();
   }
 
-  void _loadResultsForScrutin() {
-    // Exemple de données fictives :
-    setState(() {
-      allCandidats = [
-        Candidat(
-            id: '1',
-            name: 'Candidat 1',
-            poste: 'Poste A',
-            imageUrl: 'assets/images/hees.jpg',
-            numberVotes: 100),
-        Candidat(
-            id: '2',
-            name: 'Candidat 2',
-            poste: 'Poste B',
-            imageUrl: 'assets/images/heess.jpg',
-            numberVotes: 80),
-        Candidat(
-            id: '3',
-            name: 'Candidat 3',
-            poste: 'Poste C',
-            imageUrl: 'assets/images/default2.png',
-            numberVotes: 120),
-      ];
-      filteredCandidats = List.from(allCandidats);
-    });
+  void _loadResultsForScrutin() async {
+    try {
+      // Appeler le service pour obtenir les candidats en fonction de l'ID du scrutin
+      final candidatsStream =
+          await CandidatService().getCandidatsByScrutin(widget.scrutinId);
+      candidatsStream.listen((candidats) {
+        setState(() {
+          allCandidats = candidats;
+          // Trier les candidats par nombre de votes décroissant
+          allCandidats.sort((a, b) => b.nombreVotes.compareTo(a.nombreVotes));
+          //filteredCandidats = allCandidats.take(3).toList();
+          filteredCandidats = allCandidats.toList();
+        });
+      });
+    } catch (error) {
+      print('Erreur lors du chargement des résultats : $error');
+    }
   }
 
   void filterCandidats(String query) {
@@ -82,27 +49,20 @@ class _ResultsPageState extends State<ResultsPage> {
         filteredCandidats = List.from(allCandidats);
       } else {
         filteredCandidats = allCandidats.where((candidat) {
-          return candidat.name.toLowerCase().contains(query.toLowerCase()) ||
-              candidat.poste.toLowerCase().contains(query.toLowerCase());
+          return candidat.nom.toLowerCase().contains(query.toLowerCase()) ||
+              candidat.poste.toLowerCase().contains(query.toLowerCase()) ||
+              candidat.nombreVotes.toString().contains(query);
         }).toList();
       }
     });
   }
 
   void _navigateToDetails(BuildContext context, Candidat candidat) {
-    /* Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CandidatDetailsPage(candidat: candidat),
-      ),
-    );*/
+    // Définir la navigation vers la page de détails ici, si nécessaire
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tri des candidats par nombre de votes en ordre décroissant
-    filteredCandidats.sort((a, b) => b.numberVotes.compareTo(a.numberVotes));
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -121,7 +81,6 @@ class _ResultsPageState extends State<ResultsPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Barre de recherche
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
@@ -149,7 +108,6 @@ class _ResultsPageState extends State<ResultsPage> {
                 ),
               ),
             ),
-            // Affichage des résultats
             Expanded(
               child: filteredCandidats.isEmpty
                   ? Center(
@@ -157,16 +115,16 @@ class _ResultsPageState extends State<ResultsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                            "assets/images/hees.jpg", // Image par défaut si aucune donnée
-                            width: 200,
-                            height: 200,
+                            "assets/images/empty.jpg", // Image par défaut si aucune donnée
+                            height: 150,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 17),
                           const Text(
-                            "Aucun candidat trouvé",
+                            "Aucun vote enregistré",
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -176,7 +134,6 @@ class _ResultsPageState extends State<ResultsPage> {
                       itemCount: filteredCandidats.length,
                       itemBuilder: (context, index) {
                         final candidat = filteredCandidats[index];
-                        // Déterminer le nombre d'étoiles à afficher en fonction du classement
                         int starCount = 0;
                         if (index == 0) {
                           starCount = 3; // Premier
@@ -208,8 +165,8 @@ class _ResultsPageState extends State<ResultsPage> {
                               child: CircleAvatar(
                                 radius: 30,
                                 backgroundImage: AssetImage(
-                                  candidat.imageUrl.isNotEmpty
-                                      ? candidat.imageUrl
+                                  candidat.image.isNotEmpty
+                                      ? candidat.image
                                       : 'assets/images/hees.jpg',
                                 ),
                               ),
@@ -218,7 +175,7 @@ class _ResultsPageState extends State<ResultsPage> {
                               onTap: () =>
                                   _navigateToDetails(context, candidat),
                               child: Text(
-                                candidat.name,
+                                candidat.nom,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -226,7 +183,7 @@ class _ResultsPageState extends State<ResultsPage> {
                               ),
                             ),
                             subtitle: Text(
-                              candidat.poste,
+                              "${candidat.nombreVotes} vote(s)",
                               style: const TextStyle(color: Colors.grey),
                             ),
                             trailing: Row(
@@ -248,24 +205,7 @@ class _ResultsPageState extends State<ResultsPage> {
           ],
         ),
       ),
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: Colors.white,
     );
   }
-}
-
-// Exemple de modèle de candidat
-class Candidat {
-  final String id;
-  final String name;
-  final String poste;
-  final String imageUrl;
-  final int numberVotes;
-
-  Candidat({
-    required this.id,
-    required this.name,
-    required this.poste,
-    required this.imageUrl,
-    required this.numberVotes,
-  });
 }

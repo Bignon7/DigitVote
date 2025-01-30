@@ -47,6 +47,10 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   encrypt: ^5.0.3
   provider: ^6.1.2
+  google_sign_in: ^6.1.6
+  supabase_flutter: ^2.8.3
+  intl: ^0.19.0
+  fl_chart: ^0.70.2
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +86,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
   - assets/images/no_data.png
+  - assets/images/empty.jpg
+  - assets/images/default_scrutin_img.jpg
   - assets/images/hees.jpg
   - assets/images/heess.jpg
   - assets/illustrations/1.jpg
@@ -94,7 +100,11 @@ flutter:
   - assets/illustrations/adje.jpg
   - assets/animations/Animation1.json
   - assets/animations/Animation3.json
+  - assets/animations/Animation_loading.json
   - assets/profile.jpg
+  - assets/crown.png
+  - assets/lock.png
+  - assets/google_logo.jpg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

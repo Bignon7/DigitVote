@@ -1,19 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-
-class Candidat {
-  final String id;
-  final String name;
-  final String poste;
-  final String imageUrl;
-
-  Candidat({
-    required this.id,
-    required this.name,
-    required this.poste,
-    required this.imageUrl,
-  });
-}
+import '../../backend/models/candidat.dart';
+import 'package:digit_vote/frontend/utils/custom_loader.dart';
 
 class CandidatDetailsPage extends StatelessWidget {
   final Candidat candidat;
@@ -26,7 +14,7 @@ class CandidatDetailsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          candidat.name,
+          candidat.nom,
           style:
               const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
@@ -49,16 +37,35 @@ class CandidatDetailsPage extends StatelessWidget {
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(15.0),
-              child: Image.asset(
-                candidat.imageUrl,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: candidat.image.isNotEmpty
+                  ? Image.network(
+                      candidat.image,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/default2.png',
+                          fit: BoxFit.cover,
+                          height: 200,
+                          width: double.infinity,
+                        );
+                      },
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return CustomLoader();
+                      },
+                    )
+                  : Image.asset(
+                      'assets/images/default2.png',
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
             SizedBox(height: 20),
             Text(
-              candidat.name,
+              candidat.nom,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
@@ -68,11 +75,7 @@ class CandidatDetailsPage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras facilisis, ornare est "
-              "et volutpat gravida, urna purus bibendum libero, eu efficitur sapien lectus ut "
-              "dolor. Integer a nisi turpis. Vivamus eleifend nisi ut turpis lacinia id dignissim "
-              "quam ultricies. Mauris tempus libero at orci quis vulputate ut, amet lobortis "
-              "sapien.",
+              candidat.biographie,
               style: TextStyle(fontSize: 14, height: 1.5),
               textAlign: TextAlign.justify,
             ),
@@ -82,7 +85,7 @@ class CandidatDetailsPage extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                        'Candidat sélectionné: ${candidat.name}, ID: ${candidat.id}'),
+                        'Candidat sélectionné: ${candidat.nom}, ID: ${candidat.id}'),
                   ),
                 );
                 Navigator.pushNamed(context, '/success');
