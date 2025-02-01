@@ -8,7 +8,6 @@ import 'scrutin_page.dart';
 import 'notifications_page.dart';
 import 'profile_page.dart';
 import 'login_page.dart';
-import 'succespage.dart';
 import '../utils/custom_loader.dart';
 
 void main() async {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/custom_loader.dart';
 import '../../backend/services/candidat_service.dart';
-import '../../backend/models/candidat.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../backend/services/supabase_service.dart';
 import 'dart:io';

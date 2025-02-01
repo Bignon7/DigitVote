@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import 'package:digit_vote/backend/services/candidat_service.dart'; // Importation de ton service
-import '../utils/custom_loader.dart';
+//import '../utils/custom_loader.dart';
 import '../../backend/models/candidat.dart';
 import '../utils/getImage_widget.dart';
 
