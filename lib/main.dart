@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import './frontend/utils/colors.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
 import 'dart:async';
 import './frontend/screens/welcome_page.dart';
-//import './frontend/screens/email_testyy.dart';
 
 void main() async {
   const supabaseUrl = 'https://aazzaadoagikcnvicxll.supabase.co';
@@ -15,25 +15,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  await initializeDateFormatting('fr_FR', null);
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    /* return MaterialApp(
-      home: SplashScreen(),
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Nunito',
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.light(
-          primary: AppColors.primary,
-          secondary: AppColors.accent,
-        ),
-      ),
-    );*/
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(

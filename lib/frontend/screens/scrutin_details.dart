@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'candidat_form.dart';
 import '../utils/custom_loader.dart';
 import 'resultats_page.dart';
+import 'candidat_for_scrutin.dart';
 
 class ScrutinPage extends StatelessWidget {
   final String scrutinId;
@@ -92,7 +93,7 @@ class ScrutinPage extends StatelessWidget {
   String formatDate(String dateString) {
     try {
       final DateTime date = DateTime.parse(dateString);
-      final DateFormat formatter = DateFormat("d MMMM yyyy");
+      final DateFormat formatter = DateFormat("d MMMM yyyy", "fr_FR");
       return formatter.format(date);
     } catch (e) {
       return 'N/A';
@@ -227,12 +228,6 @@ class ScrutinPage extends StatelessWidget {
                       trailing:
                           Icon(Icons.arrow_forward_ios, color: Colors.green),
                       onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) =>
-                        //           NombreCandidatsPage(scrutinId: scrutinId)),
-                        // );
                         _demanderNombreCandidats(context);
                       },
                     ),
@@ -252,11 +247,32 @@ class ScrutinPage extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  EditScrutinForm(scrutinId: scrutinId)),
+                                  UpdateScrutinScreen(scrutinId: scrutinId)),
                         );
                       },
                     ),
                   ),
+                  SizedBox(height: 40),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ListTile(
+                      title: Text('Liste des candidats'),
+                      trailing:
+                          Icon(Icons.arrow_forward_ios, color: Colors.green),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  CandidatForScrutinPage(scrutinId: scrutinId)),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 40),
                 ],
               ),
             ),

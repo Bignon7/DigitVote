@@ -72,17 +72,6 @@ class CandidatService {
   }
 
   // Réinitialiser les votes de tous les candidats d'un scrutin
-  //Ici le bach est utilisé pour ne pas ralentir notre application, sans batch nous serions obligés de faire une requee distincte pour chaque candidat ce qui pourrait ralentir l'app
-
-  /*Future<void> resetVotesForScrutin(String scrutinId) async {
-    final querySnapshot = await _candidatsCollection
-        .where('scrutin_id', isEqualTo: scrutinId)
-        .get();
-    for (var doc in querySnapshot.docs) {
-      await doc.reference.update({'nombreVotes': 0});
-    }
-  }*/
-
   Future<void> resetVotesForScrutin(String scrutinId) async {
     final querySnapshot = await _candidatsCollection
         .where('scrutin_id', isEqualTo: scrutinId)

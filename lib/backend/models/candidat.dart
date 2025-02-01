@@ -3,24 +3,20 @@ class Candidat {
   String _scrutinId;
   String _nom;
   String _biographie;
-  String _poste;
   String _image;
   int _nombreVotes;
 
   Candidat({
-    //this.id = '',  à revoir: je epux faire ceci, comme ça blus besoin de le faire ailleurs et plus besoin de gérer mon id
     required String id,
     required String scrutinId,
     required String nom,
     required String biographie,
-    required String poste,
     required String image,
     required int nombreVotes,
   })  : _id = id,
         _scrutinId = scrutinId,
         _nom = nom,
         _biographie = biographie,
-        _poste = poste,
         _image = image,
         _nombreVotes = nombreVotes;
 
@@ -28,7 +24,6 @@ class Candidat {
   String get scrutinId => _scrutinId;
   String get nom => _nom;
   String get biographie => _biographie;
-  String get poste => _poste;
   String get image => _image;
   int get nombreVotes => _nombreVotes;
 
@@ -60,13 +55,6 @@ class Candidat {
     _biographie = value;
   }
 
-  set poste(String value) {
-    if (value.isEmpty) {
-      throw ArgumentError("Le poste ne peut pas être null");
-    }
-    _poste = value;
-  }
-
   set image(String value) {
     if (value.isEmpty) {
       throw ArgumentError("L'image ne peut pas être null");
@@ -84,7 +72,6 @@ class Candidat {
       'scrutin_id': _scrutinId,
       'nom': _nom,
       'biographie': _biographie,
-      'poste': _poste,
       'image': _image,
       'nombreVotes': _nombreVotes,
     };
@@ -96,7 +83,6 @@ class Candidat {
       scrutinId: map['scrutin_id'],
       nom: map['nom'],
       biographie: map['biographie'],
-      poste: map['poste'],
       image: map['image'],
       nombreVotes: map['nombreVotes'],
     );

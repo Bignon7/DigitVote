@@ -9,9 +9,6 @@ class ScrutinService {
   final CollectionReference _scrutinsCollection =
       FirebaseFirestore.instance.collection('scrutins');
 
-  // final CollectionReference _candidatsCollection =
-  //     FirebaseFirestore.instance.collection('candidats');
-
   final CandidatService? _candidatService;
 
   ScrutinService({CandidatService? candidatService})
@@ -19,10 +16,6 @@ class ScrutinService {
 
   // Ajouter un scrutin
   Future<String> createScrutin(Scrutin scrutin) async {
-    //await _scrutinsCollection.doc(scrutin.id).set(scrutin.toMap()); ceci pour ajouter avec id scrutin.id
-    /*final docRef = await _scrutinsCollection.add(scrutin.toMap()); ceci est une version moins optimale 
-    scrutin.id = docRef.id;
-    await _scrutinsCollection.doc(docRef.id).set(scrutin.toMap());*/
     final docRef = _scrutinsCollection.doc();
     scrutin.id = docRef.id;
     await docRef.set(scrutin.toMap());

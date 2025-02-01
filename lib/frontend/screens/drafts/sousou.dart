@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart'; // Ajoutez ce package à pubspec.yaml
 import 'package:digit_vote/backend/models/scrutin.dart';
-import '../../backend/services/scrutin_service.dart';
-import '../utils/colors.dart';
-import 'candidats_page.dart';
-import 'resultats_page.dart';
+import '../../../backend/services/scrutin_service.dart';
+import '../../utils/colors.dart';
+import '../candidats_page.dart';
+import '../resultats_page.dart';
 
 class ScrutinPage extends StatefulWidget {
   @override

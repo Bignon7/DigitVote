@@ -4,6 +4,9 @@ import './signup_page.dart';
 import './main_page.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'email_verification_page.dart';
+import 'forgot_password_page.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -20,27 +23,50 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<UserCredential?> _signInWithGoogle() async {
     try {
-      // Déclencher le flux de connexion Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
       if (googleUser == null) return null;
-
-      // Obtenir les détails d'authentification de la requête
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-
-      // Créer un nouvel identifiant
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
-      // Connecter l'utilisateur avec Firebase
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (e) {
       _showErrorDialog(
           'Une erreur s\'est produite lors de la connexion avec Google.');
       return null;
+    }
+  }
+
+  Future<void> signInUser(
+      BuildContext context, String email, String password) async {
+    try {
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      final User? user = userCredential.user;
+      if (user != null) {
+        if (!user.emailVerified) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EmailVerificationPage(email: user.email!),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MyApp()),
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(_getErrorMessage(e.code));
+    } catch (_) {
+      _showErrorDialog("Une erreur s'est produite. Veuillez réessayer.");
     }
   }
 
@@ -120,7 +146,6 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
-
             // Section formulaire (mise à jour avec Google Sign-In)
             Expanded(
               child: Container(
@@ -183,6 +208,23 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ForgotPasswordPage(),
+                                  ),
+                                );
+                              },
+                              child: Text("Mot de passe oublié ?"),
+                            ),
+                          ],
+                        ),
+
                         const SizedBox(height: 32),
                         // Bouton de connexion email/mot de passe (inchangé)
                         SizedBox(
@@ -192,32 +234,15 @@ class _LoginPageState extends State<LoginPage> {
                               setState(() {
                                 _isLoading = true;
                               });
-                              try {
-                                final userCredential = await FirebaseAuth
-                                    .instance
-                                    .signInWithEmailAndPassword(
-                                  email: _emailController.text.trim(),
-                                  password: _passwordController.text.trim(),
-                                );
 
-                                if (userCredential.user != null) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => MyApp()),
-                                  );
-                                }
-                              } on FirebaseAuthException catch (e) {
-                                final errorMessage = _getErrorMessage(e.code);
-                                _showErrorDialog(errorMessage);
-                              } catch (_) {
-                                _showErrorDialog(
-                                    'Une erreur s\'est produite. Veuillez réessayer.');
-                              } finally {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
+                              await signInUser(
+                                  context,
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim());
+
+                              setState(() {
+                                _isLoading = false;
+                              });
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2FB364),

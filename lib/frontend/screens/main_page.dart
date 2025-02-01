@@ -39,9 +39,6 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: AuthWrapper(),
-      routes: {
-        '/success': (context) => SuccessPage(),
-      },
     );
   }
 }

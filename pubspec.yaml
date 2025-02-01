@@ -51,6 +51,8 @@ dependencies:
   supabase_flutter: ^2.8.3
   intl: ^0.19.0
   fl_chart: ^0.70.2
+  animate_do: ^3.3.4
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -88,21 +90,21 @@ flutter:
   - assets/images/no_data.png
   - assets/images/empty.jpg
   - assets/images/default_scrutin_img.jpg
-  - assets/images/hees.jpg
-  - assets/images/heess.jpg
   - assets/illustrations/1.jpg
   - assets/illustrations/2.jpg
   - assets/illustrations/3.jpg
-  - assets/illustrations/profile.jpg
+  - assets/illustrations/verif_account.jpg
+  - assets/illustrations/email_verif1.png
+  - assets/illustrations/email_verif2.png
+  - assets/illustrations/forgot_pass.png
+  - assets/illustrations/reset_pass.png
+  - assets/illustrations/update_profile.png
   - assets/images/default.png
   - assets/images/default2.png
   - assets/animations/Animation.json
-  - assets/illustrations/adje.jpg
   - assets/animations/Animation1.json
   - assets/animations/Animation3.json
   - assets/animations/Animation_loading.json
-  - assets/profile.jpg
-  - assets/crown.png
   - assets/lock.png
   - assets/google_logo.jpg
   #   - images/a_dot_burr.jpeg

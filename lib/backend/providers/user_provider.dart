@@ -56,6 +56,15 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> refreshUserData(String userId) async {
+    final userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      _userData = userDoc.data();
+      notifyListeners();
+    }
+  }
+
   bool hasVoted(String scrutinId) {
     return _userVotes[scrutinId] ?? false;
   }
@@ -71,7 +80,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-// Fonction pour afficher l'alerte en cas d'erreur
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(
       context: context,

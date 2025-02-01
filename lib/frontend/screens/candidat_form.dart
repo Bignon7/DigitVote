@@ -84,7 +84,6 @@ class CandidatPage extends StatefulWidget {
 
 class _CandidatPageState extends State<CandidatPage> {
   final TextEditingController _nomController = TextEditingController();
-  final TextEditingController _postController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final _imageController =
       TextEditingController(text: "Aucune image sélectionnée");
@@ -95,11 +94,8 @@ class _CandidatPageState extends State<CandidatPage> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
 
-  // Validation States
   String? _nomError;
-  String? _postError;
   String? _descriptionError;
-  String? _imageError;
 
   Future<void> pickImage() async {
     final XFile? pickedFile =
@@ -108,7 +104,6 @@ class _CandidatPageState extends State<CandidatPage> {
       setState(() {
         _imageController.text = pickedFile.name;
         _selectedImage = File(pickedFile.path);
-        _imageError = null;
       });
     }
   }
@@ -118,102 +113,70 @@ class _CandidatPageState extends State<CandidatPage> {
       _nomError = _nomController.text.isEmpty
           ? 'Veuillez entrer le nom du candidat'
           : null;
-      _postError = _postController.text.isEmpty
-          ? 'Veuillez entrer le poste du candidat'
-          : null;
       _descriptionError = _descriptionController.text.isEmpty
           ? 'Veuillez entrer la biographie du candidat'
-          : null;
-      _imageError = _selectedImage == null
-          ? 'Veuillez sélectionner une image pour le candidat'
           : null;
     });
   }
 
   bool isFormValid() {
     validateFields();
-    return _nomError == null &&
-        _postError == null &&
-        _descriptionError == null &&
-        _imageError == null;
+    return _nomError == null && _descriptionError == null;
   }
 
   Future<void> saveCandidat() async {
     if (!isFormValid()) return;
 
     setState(() => _isLoading = true);
-
+    String? imageUrl;
     if (_selectedImage != null) {
-      final imageUrl = await SupabaseService().uploadImageForScrutin(
+      imageUrl = await SupabaseService().uploadImageForCandidat(
         file: _selectedImage!,
         bucketName: 'votify_files',
         context: context,
       );
+    }
+    try {
+      final candidat = Candidat(
+        id: '',
+        nom: _nomController.text.trim(),
+        image: imageUrl ?? imagePath,
+        biographie: _descriptionController.text.trim(),
+        nombreVotes: 0,
+        scrutinId: widget.scrutinId,
+      );
 
-      if (imageUrl != null) {
-        try {
-          final candidat = Candidat(
-            id: '',
-            nom: _nomController.text,
-            image: imageUrl,
-            biographie: _descriptionController.text,
-            nombreVotes: 0,
-            poste: _postController.text,
-            scrutinId: widget.scrutinId,
-          );
-
-          await _scrutinService.addCandidatToScrutin(
-              widget.scrutinId, candidat);
-          _nomController.clear();
-          _descriptionController.clear();
-          _postController.clear();
-          _imageController.clear();
-          setState(() {
-            imagePath = 'assets/images/default2.png';
-          });
-          widget.onSave(true);
-        } catch (e) {
-          setState(() => _isLoading = false);
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Erreur',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent)),
-              content: Text('Une erreur est survenue : ${e.toString()}'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('OK', style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
-          );
-        } finally {
-          setState(() => _isLoading = false);
-        }
-      } else {
-        setState(() => _isLoading = false);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Erreur',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent)),
-            content: Text('Vous devez sélectionner une image valide'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK', style: TextStyle(color: Colors.red)),
-              ),
-            ],
+      await _scrutinService.addCandidatToScrutin(widget.scrutinId, candidat);
+      _nomController.clear();
+      _descriptionController.clear();
+      _imageController.clear();
+      setState(() {
+        imagePath = 'assets/images/default2.png';
+      });
+      widget.onSave(true);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            'Erreur',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent),
           ),
-        );
-      }
+          content: Text('Une erreur est survenue : ${e.toString()}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -221,7 +184,6 @@ class _CandidatPageState extends State<CandidatPage> {
   void dispose() {
     _nomController.dispose();
     _descriptionController.dispose();
-    _postController.dispose();
     super.dispose();
   }
 
@@ -316,36 +278,6 @@ class _CandidatPageState extends State<CandidatPage> {
                 ),
               const SizedBox(height: 20),
               const Text(
-                'Poste',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: TextField(
-                  controller: _postController,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(15),
-                  ),
-                ),
-              ),
-              if (_postError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    _postError!,
-                    style: TextStyle(color: Colors.red, fontSize: 12),
-                  ),
-                ),
-              const SizedBox(height: 20),
-              const Text(
                 'Photo',
                 style: TextStyle(
                   fontSize: 16,
@@ -376,14 +308,6 @@ class _CandidatPageState extends State<CandidatPage> {
                   ),
                 ),
               ),
-              if (_imageError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    _imageError!,
-                    style: TextStyle(color: Colors.red, fontSize: 12),
-                  ),
-                ),
               const SizedBox(height: 20),
               const Text(
                 'Biographie',

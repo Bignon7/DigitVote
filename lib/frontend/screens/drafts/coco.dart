@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../backend/services/candidat_service.dart';
-import '../../backend/services/scrutin_service.dart';
-import '../../backend/models/candidat.dart';
+import '../../../backend/services/candidat_service.dart';
+import '../../../backend/services/scrutin_service.dart';
+import '../../../backend/models/candidat.dart';
 
 class CreateCandidatForm extends StatefulWidget {
   final String scrutinId;
@@ -32,7 +32,6 @@ class _CreateCandidatFormState extends State<CreateCandidatForm> {
     if (_formKey.currentState?.validate() ?? false) {
       final nom = _nomController.text;
       final biographie = _biographieController.text;
-      final poste = _posteController.text;
       final image = _imageController.text;
 
       final candidat = Candidat(
@@ -40,7 +39,6 @@ class _CreateCandidatFormState extends State<CreateCandidatForm> {
         scrutinId: widget.scrutinId,
         nom: nom,
         biographie: biographie,
-        poste: poste,
         image: image,
         nombreVotes: 0,
       );

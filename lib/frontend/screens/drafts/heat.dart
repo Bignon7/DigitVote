@@ -66,16 +66,16 @@
 
 ////forulair_candidat est fonctionnel
 import 'package:flutter/material.dart';
-import '../utils/colors.dart';
-import '../../backend/services/candidat_service.dart';
-import '../../backend/services/scrutin_service.dart';
-import '../../backend/models/candidat.dart';
-import '../../backend/providers/user_provider.dart';
+import '../../utils/colors.dart';
+import '../../../backend/services/candidat_service.dart';
+import '../../../backend/services/scrutin_service.dart';
+import '../../../backend/models/candidat.dart';
+import '../../../backend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../backend/services/supabase_service.dart';
-import 'success_candidat.dart';
-import '../utils/custom_loader.dart';
+import '../../../backend/services/supabase_service.dart';
+import '../success_candidat.dart';
+import '../../utils/custom_loader.dart';
 import 'dart:io';
 
 class NombreCandidatsPage extends StatefulWidget {
@@ -341,7 +341,6 @@ class _CandidatPageState extends State<CandidatPage> {
             image: imageUrl,
             biographie: _descriptionController.text,
             nombreVotes: 0,
-            poste: _postController.text,
             scrutinId: widget.scrutinId,
           );
 

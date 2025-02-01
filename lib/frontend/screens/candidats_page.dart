@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:digit_vote/frontend/screens/succespage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/colors.dart';
@@ -6,6 +7,7 @@ import 'package:digit_vote/backend/services/candidat_service.dart';
 import 'package:digit_vote/backend/services/vote_service.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
 import 'package:digit_vote/backend/models/vote.dart';
+import '../utils/getImage_widget.dart';
 import 'candidat_detail.dart';
 import '../utils/custom_loader.dart';
 import '../../backend/models/candidat.dart';
@@ -55,7 +57,12 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
       setState(() {
         _isSubmitting = false;
       });
-      Navigator.pushNamed(context, '/success');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SuccessPage(),
+        ),
+      );
     } catch (e) {
       setState(() {
         _isSubmitting = false;
@@ -112,7 +119,7 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
                     c.nom
                         .toLowerCase()
                         .contains(_searchController.text.toLowerCase()) ||
-                    c.poste
+                    c.biographie
                         .toLowerCase()
                         .contains(_searchController.text.toLowerCase()))
                 .toList();
@@ -128,7 +135,7 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
       } else {
         filteredCandidats = allCandidats.where((candidat) {
           return candidat.nom.toLowerCase().contains(query.toLowerCase()) ||
-              candidat.poste.toLowerCase().contains(query.toLowerCase());
+              candidat.biographie.toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
     });
@@ -138,7 +145,10 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CandidatDetailsPage(candidat: candidat),
+        builder: (context) => CandidatDetailsPage(
+          candidat: candidat,
+          scrutinId: widget.scrutinId,
+        ),
       ),
     );
   }
@@ -271,11 +281,8 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
                                           _navigateToDetails(context, candidat),
                                       child: CircleAvatar(
                                         radius: 30,
-                                        backgroundImage: candidat.image.isEmpty
-                                            ? const AssetImage(
-                                                "assets/images/default2.png")
-                                            : NetworkImage(candidat.image)
-                                                as ImageProvider<Object>,
+                                        backgroundImage:
+                                            getImageProvider(candidat.image),
                                       ),
                                     ),
                                     title: GestureDetector(
@@ -289,9 +296,11 @@ class _VoteCandidatsPageState extends State<VoteCandidatsPage> {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      candidat.poste,
+                                      candidat.biographie,
                                       style:
                                           const TextStyle(color: Colors.grey),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
                                     ),
                                     trailing: Radio<String>(
                                       value: candidat.id,

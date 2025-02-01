@@ -9,10 +9,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Variable pour suivre la page actuelle
   bool showHomeOne = true;
 
-  // Méthode pour basculer entre HomeOne et HomeTwo
   void togglePage() {
     setState(() {
       showHomeOne = !showHomeOne;
@@ -43,7 +41,7 @@ class HomeOne extends StatelessWidget {
             SizedBox(height: 20),
             Center(
               child: Image.asset(
-                'assets/illustrations/2.jpg', // Image principale
+                'assets/illustrations/2.jpg',
                 height: 280,
                 fit: BoxFit.cover,
               ),
@@ -97,7 +95,7 @@ class HomeOne extends StatelessWidget {
             ),
             SizedBox(height: 25),
             GestureDetector(
-              onTap: onToggle, // Basculer à HomeTwo
+              onTap: onToggle,
               child: Text.rich(
                 TextSpan(
                   children: [
@@ -143,7 +141,7 @@ class HomeTwo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/illustrations/3.jpg', // Image principale
+              'assets/illustrations/3.jpg',
               height: 300,
               fit: BoxFit.contain,
             ),
@@ -192,7 +190,7 @@ class HomeTwo extends StatelessWidget {
             ),
             SizedBox(height: 20),
             GestureDetector(
-              onTap: onToggle, // Basculer à HomeTwo
+              onTap: onToggle,
               child: Text.rich(
                 TextSpan(
                   children: [

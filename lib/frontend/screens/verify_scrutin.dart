@@ -25,7 +25,6 @@ class _VerifyPageState extends State<VerifyPage> {
     super.initState();
     controllers = List.generate(codeLength, (_) => TextEditingController());
     focusNodes = List.generate(codeLength, (_) => FocusNode());
-    // Initialiser le focus sur la première case
     WidgetsBinding.instance.addPostFrameCallback((_) {
       focusNodes.first.requestFocus();
     });
@@ -44,7 +43,6 @@ class _VerifyPageState extends State<VerifyPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Vérifie si tous les champs sont remplis
     bool isButtonEnabled =
         controllers.every((controller) => controller.text.isNotEmpty);
 
@@ -57,7 +55,6 @@ class _VerifyPageState extends State<VerifyPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Topbar avec bouton retour et titre centré
                 Row(
                   children: [
                     IconButton(
@@ -75,24 +72,17 @@ class _VerifyPageState extends State<VerifyPage> {
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(
-                        width: 48), // Espace pour équilibrer visuellement
+                    const SizedBox(width: 48),
                   ],
                 ),
-
                 const SizedBox(height: 40),
-
-                // Icône du cadenas
                 Center(
                   child: Image.asset(
-                    'assets/lock.png', // Remplacez par le chemin de votre image
+                    'assets/lock.png',
                     height: 120,
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Texte d'instruction
                 const Center(
                   child: Text(
                     "Renseignez le code de vérification de ce scrutin pour voter.",
@@ -103,10 +93,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Champs de saisie pour le code
                 Center(
                   child: Wrap(
                     spacing: 30,
@@ -128,7 +115,7 @@ class _VerifyPageState extends State<VerifyPage> {
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.text,
                           maxLength: 1,
                           decoration: const InputDecoration(
                             counterText: "",
@@ -147,10 +134,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     }),
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Bouton Envoyer
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -162,7 +146,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isButtonEnabled
                           ? const Color(0xFF2FB364)
-                          : Colors.grey, // Bouton grisé
+                          : Colors.grey,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
@@ -185,68 +169,10 @@ class _VerifyPageState extends State<VerifyPage> {
     );
   }
 
-  /* void _validateCode(BuildContext context) {
-    final enteredCode = controllers
-        .map((controller) => controller.text)
-        .join(); // Combine les valeurs
-
-    if (enteredCode == widget.scrutinCode) {
-      // Si le code est correct
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => VoteCandidatsPage(scrutinId: widget.scrutinId),
-        ),
-      );
-    } else {
-      // Si le code est incorrect
-      setState(() {
-        failedAttempts++;
-        for (var controller in controllers) {
-          controller.clear(); // Vide les champs
-        }
-        // Réinitialise le focus sur la première case
-        focusNodes.first.requestFocus();
-      });
-
-      if (failedAttempts < 3) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Code incorrect. Tentative ${failedAttempts}/3"),
-          ),
-        );
-      } else {
-        // Affiche un AlertDialog après 3 échecs
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Accès refusé"),
-            content: const Text(
-              "Vous n'avez pas la permission de voter pour ce scrutin.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
-        Navigator.pop(context);
-      }
-    }
-  }
-*/
-
   void _validateCode(BuildContext context) {
-    final enteredCode = controllers
-        .map((controller) => controller.text)
-        .join(); // Combine les valeurs
+    final enteredCode = controllers.map((controller) => controller.text).join();
 
     if (enteredCode == widget.scrutinCode) {
-      // Si le code est correct
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -254,18 +180,15 @@ class _VerifyPageState extends State<VerifyPage> {
         ),
       );
     } else {
-      // Si le code est incorrect
       setState(() {
         failedAttempts++;
         for (var controller in controllers) {
-          controller.clear(); // Vide les champs
+          controller.clear();
         }
-        // Réinitialise le focus sur la première case
         focusNodes.first.requestFocus();
       });
 
       if (failedAttempts < 3) {
-        // SnackBar amélioré
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -292,7 +215,6 @@ class _VerifyPageState extends State<VerifyPage> {
           ),
         );
       } else {
-        // AlertDialog amélioré après 3 échecs
         showDialog(
           context: context,
           builder: (context) => AlertDialog(

@@ -59,64 +59,55 @@ class _ScrutinFormState extends State<ScrutinForm> {
       setState(() {
         _isLoading = true;
       });
+      String? imageUrl;
       if (_selectedImage != null) {
-        final imageUrl = await SupabaseService().uploadImageForScrutin(
+        imageUrl = await SupabaseService().uploadImageForScrutin(
           file: _selectedImage!,
           bucketName: 'votify_files',
           context: context,
         );
+      }
+      // print('Image téléchargée avec succès : $imageUrl');
+      final titre = _nomController.text.trim();
+      final description = _descriptionController.text.trim();
+      final dateOuverture = DateTime.parse(_dateOuvertureController.text);
+      final dateCloture = DateTime.parse(_dateClotureController.text);
 
-        if (imageUrl != null) {
-          // print('Image téléchargée avec succès : $imageUrl');
-          final titre = _nomController.text.trim();
-          final description = _descriptionController.text.trim();
-          final dateOuverture = DateTime.parse(_dateOuvertureController.text);
-          final dateCloture = DateTime.parse(_dateClotureController.text);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userData = userProvider.userData;
 
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
-          final userData = userProvider.userData;
+      final scrutin = Scrutin(
+        id: '',
+        titre: titre,
+        description: description,
+        dateOuverture: dateOuverture,
+        dateCloture: dateCloture,
+        createurId: userData?['id'],
+        code: '',
+        voteMultiple: false,
+        candidatsIds: [],
+        imageScrutin: imageUrl,
+      );
+      if (_isSecure) {
+        scrutin.generateCode();
+      }
 
-          final scrutin = Scrutin(
-            id: '',
-            titre: titre,
-            description: description,
-            dateOuverture: dateOuverture,
-            dateCloture: dateCloture,
-            createurId: userData?['id'],
-            code: '',
-            voteMultiple: false,
-            candidatsIds: [],
-            imageScrutin: imageUrl,
-          );
-          if (_isSecure) {
-            scrutin.generateCode();
-          }
-
-          try {
-            final ScrutinService _scrutinService = ScrutinService();
-            await _scrutinService.createScrutin(scrutin);
-            setState(() {
-              _isLoading = false;
-            });
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => SuccessScreen()),
-            );
-          } catch (e) {
-            setState(() {
-              _isLoading = false;
-            });
-            _showErrorDialog(context, e.toString());
-          }
-        }
-      } else {
+      try {
+        final ScrutinService _scrutinService = ScrutinService();
+        await _scrutinService.createScrutin(scrutin);
         setState(() {
           _isLoading = false;
         });
-        _showErrorDialog(
-            context, 'Veuillez sélectionner une image avant de télécharger.');
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SuccessScreen()),
+        );
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog(context, e.toString());
       }
     }
   }

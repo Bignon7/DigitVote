@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
 import '../../backend/services/services.dart';
 import './login_page.dart';
+import 'edit_profil.dart';
+import 'update_password.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -180,25 +182,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     _buildOptionTile(
-                      title: 'Modifier le profil',
+                      title: 'Modifier son profil',
                       icon: Icons.edit,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const EditProfilePage(),
+                            builder: (context) => const EditProfil(),
                           ),
                         );
                       },
                     ),
                     _buildOptionTile(
-                      title: 'Compléter son profil',
-                      icon: Icons.person_add,
+                      title: 'Changer son mot de passe',
+                      icon: Icons.lock,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const CompleteProfilePage(),
+                            builder: (context) => UpdatePassword(),
                           ),
                         );
                       },
@@ -207,12 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       title: 'Consulter les Résultats',
                       icon: Icons.bar_chart,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ResultsPage(),
-                          ),
-                        );
+                        //
                       },
                     ),
                     const SizedBox(height: 10),
@@ -307,43 +304,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// Exemples de pages pour la navigation
-class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Modifier le profil')),
-      body: const Center(child: Text('Page Modifier le profil')),
-    );
-  }
-}
-
-class CompleteProfilePage extends StatelessWidget {
-  const CompleteProfilePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Compléter son profil')),
-      body: const Center(child: Text('Page Compléter le profil')),
-    );
-  }
-}
-
-class ResultsPage extends StatelessWidget {
-  const ResultsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Consulter les Résultats')),
-      body: const Center(child: Text('Page Consulter les Résultats')),
     );
   }
 }

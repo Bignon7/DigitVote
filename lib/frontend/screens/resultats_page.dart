@@ -3,6 +3,7 @@ import '../utils/colors.dart';
 import 'package:digit_vote/backend/services/candidat_service.dart'; // Importation de ton service
 import '../utils/custom_loader.dart';
 import '../../backend/models/candidat.dart';
+import '../utils/getImage_widget.dart';
 
 class ResultsPage extends StatefulWidget {
   final String scrutinId;
@@ -26,7 +27,6 @@ class _ResultsPageState extends State<ResultsPage> {
 
   void _loadResultsForScrutin() async {
     try {
-      // Appeler le service pour obtenir les candidats en fonction de l'ID du scrutin
       final candidatsStream =
           await CandidatService().getCandidatsByScrutin(widget.scrutinId);
       candidatsStream.listen((candidats) {
@@ -50,7 +50,7 @@ class _ResultsPageState extends State<ResultsPage> {
       } else {
         filteredCandidats = allCandidats.where((candidat) {
           return candidat.nom.toLowerCase().contains(query.toLowerCase()) ||
-              candidat.poste.toLowerCase().contains(query.toLowerCase()) ||
+              candidat.biographie.toLowerCase().contains(query.toLowerCase()) ||
               candidat.nombreVotes.toString().contains(query);
         }).toList();
       }
@@ -115,7 +115,7 @@ class _ResultsPageState extends State<ResultsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                            "assets/images/empty.jpg", // Image par défaut si aucune donnée
+                            "assets/images/empty.jpg",
                             height: 150,
                           ),
                           const SizedBox(height: 17),
@@ -164,11 +164,8 @@ class _ResultsPageState extends State<ResultsPage> {
                                   _navigateToDetails(context, candidat),
                               child: CircleAvatar(
                                 radius: 30,
-                                backgroundImage: AssetImage(
-                                  candidat.image.isNotEmpty
-                                      ? candidat.image
-                                      : 'assets/images/hees.jpg',
-                                ),
+                                backgroundImage:
+                                    getImageProvider(candidat.image),
                               ),
                             ),
                             title: GestureDetector(

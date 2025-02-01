@@ -1,22 +1,116 @@
+import 'package:digit_vote/frontend/screens/succespage.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/colors.dart';
 import '../../backend/models/candidat.dart';
-import 'package:digit_vote/frontend/utils/custom_loader.dart';
+import '../../backend/models/vote.dart';
+import '../../backend/services/vote_service.dart';
+import '../../backend/providers/user_provider.dart';
+import '../utils/custom_loader.dart';
 
-class CandidatDetailsPage extends StatelessWidget {
+class CandidatDetailsPage extends StatefulWidget {
   final Candidat candidat;
+  final String scrutinId;
 
-  const CandidatDetailsPage({Key? key, required this.candidat})
-      : super(key: key);
+  const CandidatDetailsPage({
+    Key? key,
+    required this.candidat,
+    required this.scrutinId,
+  }) : super(key: key);
+
+  @override
+  _CandidatDetailsPageState createState() => _CandidatDetailsPageState();
+}
+
+class _CandidatDetailsPageState extends State<CandidatDetailsPage> {
+  bool _isSubmitting = false;
+  final VoteService _voteService = VoteService();
+
+  Future<void> _submitVote() async {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      if (userProvider.user == null) {
+        throw Exception("Utilisateur non authentifié !");
+      }
+
+      final vote = Vote(
+        id: "",
+        electeurId: userProvider.user!.uid,
+        scrutinId: widget.scrutinId,
+        candidatId: widget.candidat.id,
+        dateVote: DateTime.now(),
+      );
+
+      await _voteService.createVote(vote, userProvider.user!.uid);
+
+      setState(() {
+        _isSubmitting = false;
+      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SuccessPage(),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      _showErrorDialog(e.toString());
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Une erreur est survenue',
+          style: TextStyle(
+            fontSize: 19,
+            color: Colors.red,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          message.contains(':') ? message.split(':').last.trim() : message,
+          style: const TextStyle(
+            fontSize: 15,
+            color: Colors.grey,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          candidat.nom,
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          widget.candidat.nom,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: AppColors.primary,
         elevation: 0,
@@ -32,14 +126,12 @@ class CandidatDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
             ClipRRect(
               borderRadius: BorderRadius.circular(15.0),
-              child: candidat.image.isNotEmpty
+              child: widget.candidat.image.isNotEmpty
                   ? Image.network(
-                      candidat.image,
+                      widget.candidat.image,
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -53,7 +145,7 @@ class CandidatDetailsPage extends StatelessWidget {
                       },
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
-                        return CustomLoader();
+                        return const CustomLoader();
                       },
                     )
                   : Image.asset(
@@ -63,44 +155,39 @@ class CandidatDetailsPage extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              candidat.nom,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              widget.candidat.nom,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              candidat.poste,
+              widget.candidat.biographie,
               style: TextStyle(fontSize: 18, color: Colors.grey[900]),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              candidat.biographie,
-              style: TextStyle(fontSize: 14, height: 1.5),
+              widget.candidat.biographie,
+              style: const TextStyle(fontSize: 14, height: 1.5),
               textAlign: TextAlign.justify,
             ),
-            Spacer(),
+            const Spacer(),
             ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Candidat sélectionné: ${candidat.nom}, ID: ${candidat.id}'),
-                  ),
-                );
-                Navigator.pushNamed(context, '/success');
-              },
+              onPressed: _isSubmitting ? null : _submitVote,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              child: Text(
-                "Choisir",
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
+              child: _isSubmitting
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      "Choisir",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
             ),
           ],
         ),

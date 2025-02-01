@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:digit_vote/backend/models/scrutin.dart';
 import 'package:digit_vote/backend/services/scrutin_service.dart';
 import 'package:digit_vote/backend/providers/user_provider.dart';
-import '../utils/colors.dart';
-import 'scrutin_details.dart';
-import '../utils/custom_loader.dart';
+import '../../utils/colors.dart';
+import '../scrutin_details.dart';
+import '../../utils/custom_loader.dart';
 
 class NotificationsPage extends StatelessWidget {
   final ScrutinService scrutinService = ScrutinService();

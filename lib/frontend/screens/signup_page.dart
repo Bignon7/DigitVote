@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../backend/services/services.dart';
 import './login_page.dart';
+import 'email_verification_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -25,7 +26,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   bool _isEmailValid(String email) {
-    final emailRegex = RegExp(r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    final emailRegex =
+        RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
     return emailRegex.hasMatch(email);
   }
 
@@ -111,7 +113,11 @@ class _SignUpPageState extends State<SignUpPage> {
       if (user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
+          MaterialPageRoute(
+            builder: (context) => EmailVerificationPage(
+              email: _emailController.text.trim(),
+            ),
+          ),
         );
       } else {
         setState(() {

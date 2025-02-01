@@ -72,6 +72,37 @@ class SupabaseService {
     }
   }
 
+  Future<String?> uploadImageForUser({
+    required File file,
+    required String bucketName,
+    required BuildContext context,
+  }) async {
+    try {
+      final fileExtension = file.path.split('.').last.toLowerCase();
+      if (!_isValidImageExtension(fileExtension)) {
+        _showErrorDialog(
+            context, 'Seuls les fichiers JPG, JPEG et PNG sont acceptés.');
+        return null;
+      }
+      final fileName =
+          'candidats/${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+      final response =
+          await _client.storage.from(bucketName).upload(fileName, file);
+      if (response.isEmpty) {
+        throw Exception('Erreur lors du téléchargement de l\'image');
+      }
+      final tempsValidite = (100 * 365.25 * 24 * 60 * 60).toInt();
+      final signedUrl = await _client.storage
+          .from(bucketName)
+          .createSignedUrl(fileName, tempsValidite);
+
+      return signedUrl;
+    } catch (e) {
+      _showErrorDialog(context, 'Erreur lors de l\'upload : $e');
+      return null;
+    }
+  }
+
   bool _isValidImageExtension(String extension) {
     return ['jpg', 'jpeg', 'png'].contains(extension);
   }
@@ -96,17 +127,18 @@ class SupabaseService {
     return _client.storage.from(bucketName).getPublicUrl(filePath);
   }
 
-  // Future<bool> deleteFile(String filePath, String bucketName) async {
-  //   try {
-  //     final response = await _client.storage.from(bucketName).remove([filePath]);
-  //     if (response.error == null) {
-  //       return true;
-  //     } else {
-  //       throw Exception('Erreur lors de la suppression : ${response.error?.message}');
-  //     }
-  //   } catch (e) {
-  //     print('Erreur Supabase : $e');
-  //     return false;
-  //   }
-  // }
+  Future<bool> deleteFile(String filePath, String bucketName) async {
+    try {
+      final response =
+          await _client.storage.from(bucketName).remove([filePath]);
+      if (response.isNotEmpty) {
+        return true;
+      } else {
+        throw Exception('Erreur lors de la suppression du fichier.');
+      }
+    } catch (e) {
+      print('Erreur Supabase : $e');
+      return false;
+    }
+  }
 }
