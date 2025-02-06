@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
-        android:label="digit_vote"
+        android:label="Votify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         android:enableOnBackInvokedCallback="true"
@@ -38,6 +38,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <meta-data
+            android:name="com.onesignal.app_id"
+            android:value="27027cfb-65c2-4f4b-9a8c-957f3b0abeef" />
+        <meta-data
+            android:name="com.onesignal.suppressLaunchURLs"
+            android:value="false"/>          
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -21,36 +21,107 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   bool _isResending = false;
   int _resendCooldown = 0;
   Timer? _timer;
+  StreamSubscription? _authStateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _authStateSubscription =
+        FirebaseAuth.instance.userChanges().listen((User? user) async {
+      if (user != null) {
+        await user.reload();
+        user = FirebaseAuth.instance.currentUser;
+
+        if (user!.emailVerified) {
+          if (!mounted) return;
+          setState(() => _emailVerified = true);
+
+          if (ModalRoute.of(context)?.isCurrent ?? false) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MainPage()),
+              (route) => false,
+            );
+          }
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _authStateSubscription?.cancel();
     _timer?.cancel();
     super.dispose();
   }
 
+  // Future<void> _checkEmailVerified() async {
+  //   setState(() => _isLoading = true);
+  //   await Future.delayed(Duration(seconds: 2));
+
+  //   User? user = FirebaseAuth.instance.currentUser;
+  //   await user?.reload();
+
+  //   setState(() {
+  //     _emailVerified = user?.emailVerified ?? false;
+  //     _isLoading = false;
+  //   });
+
+  //   _showAlertDialog(
+  //       _emailVerified ? "Succès" : "Échec",
+  //       _emailVerified
+  //           ? "Votre email a été vérifié !"
+  //           : "Votre email n'est pas encore vérifié.");
+
+  //   if (_emailVerified) {
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => MainPage()),
+  //     );
+  //   }
+  // }
+
   Future<void> _checkEmailVerified() async {
     setState(() => _isLoading = true);
-    await Future.delayed(Duration(seconds: 2));
-
     User? user = FirebaseAuth.instance.currentUser;
-    await user?.reload();
+    int retryCount = 5;
 
-    setState(() {
-      _emailVerified = user?.emailVerified ?? false;
-      _isLoading = false;
-    });
+    for (int i = 0; i < retryCount; i++) {
+      await user?.reload();
+      await Future.delayed(Duration(seconds: 2));
+      if (user?.emailVerified ?? false) {
+        setState(() => _emailVerified = true);
+        break;
+      }
+    }
+    setState(() => _isLoading = false);
 
-    _showAlertDialog(
-        _emailVerified ? "Succès" : "Échec",
-        _emailVerified
-            ? "Votre email a été vérifié !"
-            : "Votre email n'est pas encore vérifié.");
-
+    // if (_emailVerified) {
+    //   _showAlertDialog("Succès", "Votre email a été vérifié !");
+    //   Navigator.pushAndRemoveUntil(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => MainPage()),
+    //     (route) => false,
+    //   );
+    // }
     if (_emailVerified) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MainPage()),
-      );
+      try {
+        await FirebaseAuth.instance.currentUser?.reload();
+        User? updatedUser = FirebaseAuth.instance.currentUser;
+        if (updatedUser != null && updatedUser.emailVerified) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MainPage()),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        print("Erreur lors du rafraîchissement de l'utilisateur : $e");
+      }
+    } else {
+      _showAlertDialog(
+          "Échec", "Votre email n'est pas encore vérifié. Veuillez réessayer.");
     }
   }
 

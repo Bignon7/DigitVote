@@ -25,6 +25,7 @@ class _ScrutinFormState extends State<ScrutinForm> {
   final _descriptionController = TextEditingController();
   bool _isSecure = false;
   bool _isLoading = false;
+  bool _voteMultiple = false;
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
 
@@ -84,7 +85,7 @@ class _ScrutinFormState extends State<ScrutinForm> {
         dateCloture: dateCloture,
         createurId: userData?['id'],
         code: '',
-        voteMultiple: false,
+        voteMultiple: _voteMultiple,
         candidatsIds: [],
         imageScrutin: imageUrl,
       );
@@ -249,6 +250,9 @@ class _ScrutinFormState extends State<ScrutinForm> {
                 ),
 
                 _buildDescriptionField(),
+                SizedBox(height: 20),
+                _buildVoteMultipleSwitch(),
+                SizedBox(height: 10),
                 _buildSwitchField(),
                 SizedBox(height: 30),
                 Center(
@@ -417,6 +421,38 @@ class _ScrutinFormState extends State<ScrutinForm> {
           },
         ),
         SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildVoteMultipleSwitch() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Autoriser le vote multiple",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Switch(
+              value: _voteMultiple,
+              onChanged: (bool value) {
+                setState(() {
+                  _voteMultiple = value;
+                });
+              },
+              activeColor: AppColors.primary,
+            ),
+          ],
+        ),
+        if (_voteMultiple)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              "Les électeurs pourront voter plusieurs fois pour votre scrutin.",
+              style: TextStyle(color: AppColors.primary, fontSize: 12),
+            ),
+          ),
       ],
     );
   }

@@ -21,7 +21,8 @@ class ScrutinService {
     await docRef.set(scrutin.toMap());
     if (scrutin.code.isNotEmpty) {
       try {
-        await EmailService.sendEmailWithCodeForCurrentUser(scrutin.code);
+        await EmailService.sendEmailWithCodeForCurrentUser(
+            scrutin.code, scrutin.titre);
       } catch (e) {
         //
       }
@@ -37,16 +38,75 @@ class ScrutinService {
       }).toList();
     });
   }
+//Futur et En cours
+  // Stream<List<Scrutin>> getActiveScrutins() {
+  //   return FirebaseFirestore.instance
+  //       .collection('scrutins')
+  //       .snapshots()
+  //       .map((snapshot) {
+  //     return snapshot.docs
+  //         .map((doc) {
+  //           var data = doc.data();
+  //           dynamic dateCloture = data['date_cloture'];
+  //           DateTime? dateClotureDT;
 
-/*Stream<List<Scrutin>> getActiveScrutins() {
-  return FirebaseFirestore.instance
-      .collection('scrutins')
-      .where('date_cloture', isGreaterThan: Timestamp.now())
-      .snapshots()
-      .map((snapshot) {
-        return snapshot.docs.map((doc) => Scrutin.fromDocument(doc)).toList();
-      });
-}*/
+  //           if (dateCloture is String) {
+  //             dateClotureDT = DateTime.parse(dateCloture);
+  //           } else if (dateCloture is Timestamp) {
+  //             dateClotureDT = dateCloture.toDate();
+  //           }
+  //           if (dateClotureDT != null &&
+  //               dateClotureDT.isAfter(DateTime.now())) {
+  //             return Scrutin.fromMap(data);
+  //           } else {
+  //             return null;
+  //           }
+  //         })
+  //         .where((scrutin) => scrutin != null)
+  //         .cast<Scrutin>()
+  //         .toList();
+  //   });
+  // }
+  //En cours seulement
+  Stream<List<Scrutin>> getActiveScrutins() {
+    return FirebaseFirestore.instance
+        .collection('scrutins')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) {
+            var data = doc.data();
+            dynamic dateOuverture = data['date_ouverture'];
+            dynamic dateCloture = data['date_cloture'];
+            DateTime? dateOuvertureDT;
+            DateTime? dateClotureDT;
+
+            if (dateOuverture is String) {
+              dateOuvertureDT = DateTime.parse(dateOuverture);
+            } else if (dateOuverture is Timestamp) {
+              dateOuvertureDT = dateOuverture.toDate();
+            }
+
+            if (dateCloture is String) {
+              dateClotureDT = DateTime.parse(dateCloture);
+            } else if (dateCloture is Timestamp) {
+              dateClotureDT = dateCloture.toDate();
+            }
+            DateTime now = DateTime.now();
+            if (dateOuvertureDT != null &&
+                dateClotureDT != null &&
+                dateOuvertureDT.isBefore(now) &&
+                dateClotureDT.isAfter(now)) {
+              return Scrutin.fromMap(data);
+            } else {
+              return null;
+            }
+          })
+          .where((scrutin) => scrutin != null)
+          .cast<Scrutin>()
+          .toList();
+    });
+  }
 
   // Récupérer un scrutin par ID
   Future<Scrutin> getScrutinById(String id) async {
@@ -142,7 +202,7 @@ class ScrutinService {
   //Essai de fonction pour générer le code, on pourra maybe l'utiliser pour la création et le update
 
   String getGeneratedCode({
-    int codeLength = 8,
+    int codeLength = 4,
     String allowedChars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!@#',
   }) {

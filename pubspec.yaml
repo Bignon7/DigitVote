@@ -53,6 +53,7 @@ dependencies:
   fl_chart: ^0.70.2
   animate_do: ^3.3.4
   google_fonts: ^6.2.1
+  onesignal_flutter: ^5.2.9
 
 dev_dependencies:
   flutter_test:
@@ -99,6 +100,7 @@ flutter:
   - assets/illustrations/forgot_pass.png
   - assets/illustrations/reset_pass.png
   - assets/illustrations/update_profile.png
+  - assets/illustrations/no_data2.png
   - assets/images/default.png
   - assets/images/default2.png
   - assets/animations/Animation.json

@@ -18,7 +18,7 @@ class _VerifyPageState extends State<VerifyPage> {
   late List<TextEditingController> controllers;
   late List<FocusNode> focusNodes;
   int failedAttempts = 0;
-  int codeLength = 8;
+  int codeLength = 4;
 
   @override
   void initState() {

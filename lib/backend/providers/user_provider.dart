@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../backend/models/scrutin.dart';
+import '../../backend/services/notification_service.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
   Map<String, dynamic>? _userData;
   Map<String, bool> _userVotes = {};
+
+  // Ajout de la liste des scrutins
+  List<Scrutin> _scrutins = [];
+  List<Scrutin> get scrutins => _scrutins;
 
   User? get user => _user;
   Map<String, dynamic>? get userData => _userData;
@@ -27,15 +33,50 @@ class UserProvider with ChangeNotifier {
         } else {
           _userData = {};
         }
+        notifyListeners();
       } catch (e) {
         debugPrint(
             "Erreur lors de la récupération des données utilisateur: $e");
         _showErrorDialog(context, e.toString());
         _userData = {};
+        notifyListeners();
       }
-
-      notifyListeners();
     }
+  }
+
+  Future<void> fetchScrutins() async {
+    try {
+      final QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('scrutins').get();
+
+      _scrutins = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Scrutin.fromMap(data);
+      }).toList();
+
+      print('Scrutins récupérés: ${_scrutins.length}');
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Erreur lors de la récupération des scrutins: $e");
+    }
+  }
+
+  void listenScrutins() {
+    FirebaseFirestore.instance
+        .collection('scrutins')
+        .snapshots()
+        .listen((snapshot) {
+      _scrutins = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Scrutin.fromMap(data);
+      }).toList();
+      print('Scrutins mis à jour: ${_scrutins.length}');
+      notifyListeners();
+
+      _scrutins.forEach((scrutin) async {
+        await NotificationService.checkAndNotifyScrutinTermine(scrutin, this);
+      });
+    });
   }
 
   Future<void> checkUserVoteStatus(String scrutinId) async {

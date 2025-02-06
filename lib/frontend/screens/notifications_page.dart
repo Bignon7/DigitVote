@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:digit_vote/backend/models/scrutin.dart';
 import 'package:digit_vote/backend/services/scrutin_service.dart';
@@ -59,6 +60,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         }).toList();
       }
     });
+  }
+
+  String _formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat("dd MMMM yyyy", "fr_FR");
+    return formatter.format(date);
   }
 
   Widget buildEmptyListMessage() {
@@ -155,6 +161,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildScrutinCard(Scrutin scrutin, BuildContext context) {
+    final color = scrutin.getStatut() == "En cours"
+        ? Colors.green
+        : scrutin.getStatut() == "Futur"
+            ? Colors.blue
+            : Colors.red;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -168,18 +179,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  scrutin.titre ?? "Titre inconnu",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    scrutin.titre ?? "Titre inconnu",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: () {
-                    // Ajouter des actions ou des paramètres ici
-                  },
+                Text(
+                  scrutin.getStatut(),
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -190,6 +203,27 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.event, size: 16, color: Colors.blueGrey),
+                const SizedBox(width: 4),
+                Text(
+                  "Ouverture: ${_formatDate(scrutin.dateOuverture)}",
+                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Icon(Icons.event_available, size: 16, color: Colors.blueGrey),
+                const SizedBox(width: 4),
+                Text(
+                  "Clôture: ${_formatDate(scrutin.dateCloture)}",
+                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                ),
+              ],
             ),
             SizedBox(height: 20),
             Row(
@@ -230,7 +264,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       ),
                     ),
                     child: const Text(
-                      'Modifier',
+                      'Gérer',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),

@@ -27,7 +27,7 @@ class _ScrutinPageState extends State<ScrutinPage> {
   }
 
   Future<void> _loadScrutins() async {
-    scrutinService.getAllScrutins().listen((scrutins) {
+    scrutinService.getActiveScrutins().listen((scrutins) {
       setState(() {
         allScrutins = scrutins;
         displayedScrutins = scrutins;

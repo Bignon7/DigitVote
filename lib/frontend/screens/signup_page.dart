@@ -1,8 +1,10 @@
+import 'package:digit_vote/frontend/screens/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../backend/services/services.dart';
 import './login_page.dart';
+import '../../backend/services/notification_service.dart';
 import 'email_verification_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -75,10 +77,19 @@ class _SignUpPageState extends State<SignUpPage> {
           userCredential.user!.email!,
           userCredential.user!.displayName ?? 'Utilisateur Google',
         );
+        await NotificationService.sendWelcomeNotification(
+          userCredential.user!.email!,
+          userCredential.user!.displayName ?? 'Utilisateur Google',
+        );
 
-        Navigator.pushReplacement(
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => LoginPage()),
+        // );
+        Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
+          MaterialPageRoute(builder: (context) => MainPage()),
+          (route) => false,
         );
       }
     } catch (e) {
@@ -111,6 +122,11 @@ class _SignUpPageState extends State<SignUpPage> {
       );
 
       if (user != null) {
+        await NotificationService.sendWelcomeNotification(
+          _emailController.text.trim(),
+          _usernameController.text.trim(),
+        );
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

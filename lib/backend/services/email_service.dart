@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -8,6 +9,7 @@ class EmailService {
     required String recipientEmail,
     required String subject,
     required String message,
+    required String nomScrutin,
   }) async {
     const url = 'https://api.emailjs.com/api/v1.0/email/send';
 
@@ -24,6 +26,7 @@ class EmailService {
         'from_name': 'Votify',
         'to_name': recipientName,
         'to_email': recipientEmail,
+        'nom_scrutin': nomScrutin,
         'subject': subject,
         'message': message,
       }
@@ -46,34 +49,43 @@ class EmailService {
   }
 
   //essayons l'envoi du code
-  static Future<void> sendEmailWithCodeForCurrentUser(String code) async {
-    // Récupérer l'utilisateur authentifié
+  static Future<void> sendEmailWithCodeForCurrentUser(
+      String code, String nomScrutin) async {
     User? user = FirebaseAuth.instance.currentUser;
-
+    Map<String, dynamic>? _userData;
     if (user != null) {
-      String userEmail = user.email ?? 'hindemelais@gmail.com';
-      String userName = user.displayName ?? 'Utilisateur inconnu';
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
 
-      String subject = 'Code de sécurisation du scrutin';
-      String body = '''
-      Bonjour $userName,
+        if (doc.exists) {
+          _userData = doc.data();
+        } else {
+          _userData = {};
+        }
+      } finally {
+        String userEmail = user.email ?? 'hindemelais@gmail.com';
+        String userName = _userData!['nom'] ?? 'Utilisateur inconnu';
+        String scrutinTitre = nomScrutin;
 
-      Le code généré pour votre scrutin est : $code
+        String subject = 'Code de sécurisation du scrutin';
+        String body = ''' $code  ''';
 
-      Merci de votre participation.
-      ''';
+        bool success = await sendEmail(
+          recipientName: userName,
+          recipientEmail: userEmail,
+          subject: subject,
+          message: body,
+          nomScrutin: scrutinTitre,
+        );
 
-      bool success = await sendEmail(
-        recipientName: userName,
-        recipientEmail: userEmail,
-        subject: subject,
-        message: body,
-      );
-
-      if (success) {
-        print('Email envoyé avec succès');
-      } else {
-        print('Échec de l\'envoi de l\'email');
+        if (success) {
+          print('Email envoyé avec succès');
+        } else {
+          print('Échec de l\'envoi de l\'email');
+        }
       }
     } else {
       print('Aucun utilisateur authentifié trouvé.');

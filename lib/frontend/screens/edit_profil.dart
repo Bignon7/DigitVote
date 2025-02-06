@@ -7,6 +7,7 @@ import 'package:digit_vote/backend/services/supabase_service.dart';
 import 'dart:io';
 
 import '../utils/colors.dart';
+import 'main_page.dart';
 
 class EditProfil extends StatefulWidget {
   const EditProfil({Key? key}) : super(key: key);
@@ -70,7 +71,10 @@ class _EditProfilState extends State<EditProfil> {
     await userProvider.refreshUserData(userId);
 
     setState(() => _isLoading = false);
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileUpdateSuccess()),
+    );
   }
 
   @override
@@ -195,5 +199,51 @@ class _EditProfilState extends State<EditProfil> {
             ],
           ),
         ));
+  }
+}
+
+class ProfileUpdateSuccess extends StatelessWidget {
+  const ProfileUpdateSuccess({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/illustrations/update_profile.png',
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 40),
+              const Text("Profil mis à jour avec succès !",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyApp()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 12)),
+                child: const Text("Retour à l'accueil",
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

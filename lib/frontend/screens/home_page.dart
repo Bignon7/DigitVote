@@ -1,7 +1,7 @@
-import 'package:digit_vote/frontend/screens/charts_page.dart';
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import 'scrutin_form.dart';
+import 'scrutin_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -72,7 +72,6 @@ class HomeOne extends StatelessWidget {
             SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                //Navigator.pushNamed(context, '/accueil');
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ScrutinForm()),
@@ -173,7 +172,7 @@ class HomeTwo extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ResultsPage()),
+                  MaterialPageRoute(builder: (context) => ScrutinPage()),
                 );
               },
               style: ElevatedButton.styleFrom(

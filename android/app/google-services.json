@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "296167259206-hmjeonnl7m11r6u3nj8joiq5kg803ie1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.votify",
+            "certificate_hash": "d36dc4c8d14991436b2a0bb2ddb867834cff4cbf"
+          }
+        },
+        {
           "client_id": "296167259206-edokoa1h7nqfmrfetr02j007beh5jr30.apps.googleusercontent.com",
           "client_type": 3
         }

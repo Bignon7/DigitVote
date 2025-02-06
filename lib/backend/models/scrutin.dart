@@ -11,6 +11,7 @@ class Scrutin {
   String _code;
   bool _voteMultiple;
   String? imageScrutin;
+  bool notificationEnvoyee = false;
 
   Scrutin({
     required String id,
@@ -150,7 +151,7 @@ class Scrutin {
   }
 
   void generateCode({
-    int codeLength = 8,
+    int codeLength = 4,
     String allowedChars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!@#',
   }) {

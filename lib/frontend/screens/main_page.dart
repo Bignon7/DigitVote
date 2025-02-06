@@ -45,14 +45,22 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final user = userProvider.user;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    if (user != null) {
-      return MainPage();
-    } else {
-      return LoginPage();
-    }
+    return FutureBuilder(
+      future: _initializeUser(userProvider, context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(body: Center(child: CustomLoader()));
+        }
+        return userProvider.user != null ? MainPage() : LoginPage();
+      },
+    );
+  }
+
+  Future<void> _initializeUser(
+      UserProvider userProvider, BuildContext context) async {
+    await userProvider.fetchUserData(context);
   }
 }
 
@@ -77,6 +85,8 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.fetchUserData(context);
     _pageController = PageController(initialPage: _currentIndex);
   }
 

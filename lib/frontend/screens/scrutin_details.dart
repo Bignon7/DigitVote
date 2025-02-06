@@ -2,9 +2,10 @@ import 'package:digit_vote/frontend/screens/edit_scruin.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import '../../backend/models/scrutin.dart';
 import 'candidat_form.dart';
 import '../utils/custom_loader.dart';
-import 'resultats_page.dart';
+import 'charts_page.dart';
 import 'candidat_for_scrutin.dart';
 
 class ScrutinPage extends StatelessWidget {
@@ -88,6 +89,13 @@ class ScrutinPage extends StatelessWidget {
   }
 
   ///Mon dialog là
+  Future<Scrutin> getScrutin(String scrutinId) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('scrutins')
+        .doc(scrutinId)
+        .get();
+    return Scrutin.fromMap(doc.data() as Map<String, dynamic>);
+  }
 
   ScrutinPage({required this.scrutinId});
   String formatDate(String dateString) {
@@ -141,6 +149,10 @@ class ScrutinPage extends StatelessWidget {
           }
 
           final scrutinData = snapshot.data!.data() as Map<String, dynamic>;
+          DateTime dateActuelle = DateTime.now();
+          DateTime dateScrutin = DateTime.parse(scrutinData['date_ouverture']);
+          bool scrutinCommence = dateActuelle.isAfter(dateScrutin) ||
+              dateActuelle.isAtSameMomentAs(dateScrutin);
 
           return SingleChildScrollView(
             child: Padding(
@@ -207,51 +219,56 @@ class ScrutinPage extends StatelessWidget {
                       title: Text('Consulter les Résultats'),
                       trailing:
                           Icon(Icons.arrow_forward_ios, color: Colors.green),
-                      onTap: () {
+                      onTap: () async {
+                        Scrutin scrutin = await getScrutin(scrutinId);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  ResultsPage(scrutinId: scrutinId)),
+                                  ResultsGraphPage(scrutin: scrutin)),
                         );
                       },
                     ),
                   ),
-                  SizedBox(height: 40),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(20),
+                  if (!scrutinCommence) ...[
+                    SizedBox(height: 40),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        title: Text('Ajouter les candidats'),
+                        trailing:
+                            Icon(Icons.arrow_forward_ios, color: Colors.green),
+                        onTap: () {
+                          _demanderNombreCandidats(context);
+                        },
+                      ),
                     ),
-                    child: ListTile(
-                      title: Text('Ajouter les candidats'),
-                      trailing:
-                          Icon(Icons.arrow_forward_ios, color: Colors.green),
-                      onTap: () {
-                        _demanderNombreCandidats(context);
-                      },
+                  ],
+                  if (!scrutinCommence) ...[
+                    SizedBox(height: 40),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        title: Text('Modifier le scrutin'),
+                        trailing:
+                            Icon(Icons.arrow_forward_ios, color: Colors.green),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    UpdateScrutinScreen(scrutinId: scrutinId)),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 40),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: ListTile(
-                      title: Text('Modifier le scrutin'),
-                      trailing:
-                          Icon(Icons.arrow_forward_ios, color: Colors.green),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  UpdateScrutinScreen(scrutinId: scrutinId)),
-                        );
-                      },
-                    ),
-                  ),
+                  ],
                   SizedBox(height: 40),
                   Container(
                     decoration: BoxDecoration(
@@ -266,8 +283,9 @@ class ScrutinPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  CandidatForScrutinPage(scrutinId: scrutinId)),
+                              builder: (context) => CandidatForScrutinPage(
+                                  scrutinId: scrutinId,
+                                  scrutinCommence: scrutinCommence)),
                         );
                       },
                     ),

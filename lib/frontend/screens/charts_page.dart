@@ -403,22 +403,24 @@ class _ResultsGraphPageState extends State<ResultsGraphPage> {
                             pieTouchResponse?.touchedSection != null) {
                           final index = pieTouchResponse!
                               .touchedSection!.touchedSectionIndex;
-                          final candidat = candidats[index];
+                          if (index >= 0 && index < candidats.length) {
+                            final candidat = candidats[index];
 
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              backgroundColor: Colors.white,
-                              title: Text(candidat.nom,
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                              content: Text("${candidat.nombreVotes} vote(s)",
-                                  style: const TextStyle(fontSize: 16)),
-                            ),
-                          );
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                backgroundColor: Colors.white,
+                                title: Text(candidat.nom,
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                content: Text("${candidat.nombreVotes} vote(s)",
+                                    style: const TextStyle(fontSize: 16)),
+                              ),
+                            );
+                          }
                         }
                       },
                     ),

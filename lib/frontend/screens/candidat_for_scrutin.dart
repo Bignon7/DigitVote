@@ -9,8 +9,10 @@ import './edit_candidats.dart';
 
 class CandidatForScrutinPage extends StatefulWidget {
   final String scrutinId;
+  final bool scrutinCommence;
 
-  CandidatForScrutinPage({required this.scrutinId});
+  CandidatForScrutinPage(
+      {required this.scrutinId, required this.scrutinCommence});
 
   @override
   _CandidatForScrutinPageState createState() => _CandidatForScrutinPageState();
@@ -140,98 +142,144 @@ class _CandidatForScrutinPageState extends State<CandidatForScrutinPage> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CustomLoader())
-                  : ListView.builder(
-                      itemCount: _filteredCandidats.length,
-                      itemBuilder: (context, index) {
-                        final candidat = _filteredCandidats[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 3),
+                  : _filteredCandidats.isEmpty
+                      ? buildEmptyListMessage()
+                      : ListView.builder(
+                          itemCount: _filteredCandidats.length,
+                          itemBuilder: (context, index) {
+                            final candidat = _filteredCandidats[index];
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              radius: 30,
-                              backgroundImage: getImageProvider(candidat.image),
-                            ),
-                            title: Text(
-                              candidat.nom,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            subtitle: Text(
-                              candidat.biographie,
-                              style: const TextStyle(color: Colors.grey),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'view') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CandidatDetailsPage(
-                                          candidatId: candidat.id),
-                                    ),
-                                  );
-                                } else if (value == 'edit') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditCandidatPage(
-                                          candidatId: candidat.id),
-                                    ),
-                                  );
-                                } else if (value == 'delete') {
-                                  _showDeleteConfirmation(candidat);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'view',
-                                  child: ListTile(
-                                    leading: Icon(Icons.visibility,
-                                        color: AppColors.primary),
-                                    title: Text('Voir'),
-                                  ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  radius: 30,
+                                  backgroundImage:
+                                      getImageProvider(candidat.image),
                                 ),
-                                PopupMenuItem(
-                                  value: 'edit',
-                                  child: ListTile(
-                                    leading:
-                                        Icon(Icons.edit, color: Colors.orange),
-                                    title: Text('Modifier'),
-                                  ),
+                                title: Text(
+                                  candidat.nom,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
                                 ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: ListTile(
-                                    leading:
-                                        Icon(Icons.delete, color: Colors.red),
-                                    title: Text('Supprimer'),
-                                  ),
+                                subtitle: Text(
+                                  candidat.biographie,
+                                  style: const TextStyle(color: Colors.grey),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                                trailing: widget.scrutinCommence
+                                    ? IconButton(
+                                        icon: Icon(Icons.visibility,
+                                            color: AppColors.primary),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CandidatDetailsPage(
+                                                        candidatId:
+                                                            candidat.id)),
+                                          );
+                                        },
+                                      )
+                                    : PopupMenuButton<String>(
+                                        onSelected: (value) {
+                                          if (value == 'view') {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CandidatDetailsPage(
+                                                        candidatId:
+                                                            candidat.id),
+                                              ),
+                                            );
+                                          } else if (value == 'edit') {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditCandidatPage(
+                                                        candidatId:
+                                                            candidat.id),
+                                              ),
+                                            );
+                                          } else if (value == 'delete') {
+                                            _showDeleteConfirmation(candidat);
+                                          }
+                                        },
+                                        itemBuilder: (context) => [
+                                          PopupMenuItem(
+                                            value: 'view',
+                                            child: ListTile(
+                                              leading: Icon(Icons.visibility,
+                                                  color: AppColors.primary),
+                                              title: Text('Voir'),
+                                            ),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'edit',
+                                            child: ListTile(
+                                              leading: Icon(Icons.edit,
+                                                  color: Colors.orange),
+                                              title: Text('Modifier'),
+                                            ),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'delete',
+                                            child: ListTile(
+                                              leading: Icon(Icons.delete,
+                                                  color: Colors.red),
+                                              title: Text('Supprimer'),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildEmptyListMessage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/illustrations/no_data2.png',
+            height: 200,
+          ),
+          //SizedBox(height: 20),
+          Text(
+            "Aucun candidat trouvé",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

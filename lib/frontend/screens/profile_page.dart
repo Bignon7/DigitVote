@@ -5,6 +5,7 @@ import 'package:digit_vote/backend/providers/user_provider.dart';
 import '../../backend/services/services.dart';
 import './login_page.dart';
 import 'edit_profil.dart';
+import 'result_for_electeur.dart';
 import 'update_password.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -29,14 +30,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       isNotificationEnabled = prefs.getBool('notifications') ?? true;
-    });
-  }
-
-  Future<void> _saveNotificationPreference(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications', value);
-    setState(() {
-      isNotificationEnabled = value;
     });
   }
 
@@ -209,33 +202,28 @@ class _ProfilePageState extends State<ProfilePage> {
                       title: 'Consulter les Résultats',
                       icon: Icons.bar_chart,
                       onTap: () {
-                        //
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ResultListForVoted(),
+                          ),
+                        );
                       },
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Activer les notifications',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Switch(
-                          value: isNotificationEnabled,
-                          onChanged: (value) {
-                            _saveNotificationPreference(value);
-                          },
-                          activeColor: const Color(0xFF2FB364),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _logout,
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              _logout();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                                (route) =>
+                                    false, // Supprime toutes les routes précédentes
+                              );
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2FB364),
                         shape: RoundedRectangleBorder(
