@@ -216,7 +216,7 @@ class ProfileUpdateSuccess extends StatelessWidget {
             children: [
               Center(
                 child: Image.asset(
-                  'assets/illustrations/update_profile.png',
+                  'assets/illustrations/success_pic.png',
                   height: 200,
                   fit: BoxFit.cover,
                 ),

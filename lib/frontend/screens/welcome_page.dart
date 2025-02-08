@@ -16,20 +16,26 @@ class _WelcomePageState extends State<WelcomePage> {
     {
       "type": "image",
       "title": "Bienvenue sur Votify",
-      "subtitle": "Votez facilement et en toute sécurité.",
-      "asset": "assets/illustrations/1.jpg",
+      "subtitle": "L'application de vote simple et sécurisée.",
+      "asset": "assets/illustrations/welcome_screen.png",
     },
     {
-      "type": "animation",
+      "type": "image",
       "title": "Créez vos scrutins",
       "subtitle": "Organisez des scrutins en quelques clics.",
-      "asset": "assets/animations/Animation.json",
+      "asset": "assets/illustrations/create_screen.png",
     },
     {
       "type": "image",
       "title": "Participez aux scrutins",
       "subtitle": "Exprimez votre voix avec simplicité.",
-      "asset": "assets/illustrations/3.jpg",
+      "asset": "assets/illustrations/vote_screen1.png",
+    },
+    {
+      "type": "image",
+      "title": "Consultez les résultats",
+      "subtitle": "Visualisez les résultats de manière claire.",
+      "asset": "assets/illustrations/chart_screen1.png",
     },
   ];
 

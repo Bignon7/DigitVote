@@ -37,7 +37,7 @@ class EmailService {
           await http.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
-        return true; // E-mail envoyé avec succès
+        return true;
       } else {
         print('Erreur lors de l\'envoi de l\'e-mail: ${response.body}');
         return false;

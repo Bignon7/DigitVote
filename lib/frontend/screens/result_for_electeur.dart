@@ -50,7 +50,7 @@ class _ResultListForVotedState extends State<ResultListForVoted> {
         });
         return;
       }
-      //et terminés
+      //scrutins terminés pour lesquels il a voté
       ScrutinService().getAllScrutins().listen((scrutinsData) {
         setState(() {
           scrutins = scrutinsData
@@ -62,16 +62,6 @@ class _ResultListForVotedState extends State<ResultListForVoted> {
           isLoading = false;
         });
       });
-      //ou vote seulement
-      // ScrutinService().getAllScrutins().listen((scrutinsData) {
-      //   setState(() {
-      //     scrutins = scrutinsData
-      //         .where((scrutin) => votedScrutinIds.contains(scrutin.id))
-      //         .toList();
-      //     filteredScrutins = scrutins;
-      //     isLoading = false;
-      //   });
-      // });
     } catch (e) {
       debugPrint("Erreur lors du chargement des scrutins votés: $e");
     }

@@ -25,7 +25,6 @@ class UpdateScrutinScreen extends StatefulWidget {
 class _UpdateScrutinScreenState extends State<UpdateScrutinScreen> {
   final _formKey = GlobalKey<FormState>();
   final ScrutinService _scrutinService = ScrutinService();
-  final EmailService _emailService = EmailService();
   final SupabaseService _supabaseService = SupabaseService();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -130,7 +129,6 @@ class _UpdateScrutinScreenState extends State<UpdateScrutinScreen> {
             throw Exception("Échec du téléchargement de l'image");
           }
         }
-        //à revoir
         final scrutinData =
             await _scrutinService.getScrutinById(widget.scrutinId);
         String? currentCode = scrutinData.code;
@@ -152,7 +150,6 @@ class _UpdateScrutinScreenState extends State<UpdateScrutinScreen> {
         } else {
           newCode = currentCode;
         }
-        //à revoir
 
         await _scrutinService.updateScrutin(
           widget.scrutinId,

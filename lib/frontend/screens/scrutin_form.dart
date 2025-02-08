@@ -56,7 +56,6 @@ class _ScrutinFormState extends State<ScrutinForm> {
 
   void _submitScrutinForm(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
-      //partieimage
       setState(() {
         _isLoading = true;
       });
@@ -68,7 +67,6 @@ class _ScrutinFormState extends State<ScrutinForm> {
           context: context,
         );
       }
-      // print('Image téléchargée avec succès : $imageUrl');
       final titre = _nomController.text.trim();
       final description = _descriptionController.text.trim();
       final dateOuverture = DateTime.parse(_dateOuvertureController.text);

@@ -7,7 +7,6 @@ import '../../backend/models/candidat.dart';
 import '../../backend/models/vote.dart';
 import '../../backend/services/vote_service.dart';
 import '../../backend/providers/user_provider.dart';
-//import '../utils/custom_loader.dart';
 import 'package:animate_do/animate_do.dart';
 
 import '../utils/getImage_widget.dart';
@@ -121,99 +120,74 @@ class _CandidatDetailsPageState extends State<CandidatDetailsPage> {
         ),
       ),
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Positioned.fill(
-          //   child: Container(
-          //     decoration: const BoxDecoration(
-          //       gradient: RadialGradient(
-          //         center: Alignment.topCenter,
-          //         radius: 1.2,
-          //         colors: [
-          //           AppColors.primary,
-          //           Color.fromARGB(163, 182, 177, 177)
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          Center(
-            child: FadeInUp(
-              duration: const Duration(milliseconds: 800),
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.secondary.withOpacity(0.5),
-                      blurRadius: 15,
-                      spreadRadius: 5,
+      body: SingleChildScrollView(
+        child: Center(
+          child: FadeInUp(
+            duration: const Duration(milliseconds: 800),
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.secondary.withOpacity(0.5),
+                    blurRadius: 15,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: getImage(widget.candidat.image),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    widget.candidat.nom,
+                    style: GoogleFonts.lobster(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
                     ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: getImage(widget.candidat.image),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    widget.candidat.biographie,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      color: Colors.grey[700],
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      widget.candidat.nom,
-                      style: GoogleFonts.lobster(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                    textAlign: TextAlign.justify,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitVote,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 50, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
+                      elevation: 10,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      widget.candidat.biographie,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Text(
-                    //   widget.candidat.biographie,
-                    //   textAlign: TextAlign.justify,
-                    //   style: GoogleFonts.poppins(
-                    //     fontSize: 16,
-                    //     height: 1.5,
-                    //   ),
-                    // ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submitVote,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 10,
-                      ),
-                      child: _isSubmitting
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              "Choisir",
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
-                            ),
-                    ),
-                  ],
-                ),
+                    child: _isSubmitting
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Choisir",
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

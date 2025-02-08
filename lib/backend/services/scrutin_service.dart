@@ -38,35 +38,7 @@ class ScrutinService {
       }).toList();
     });
   }
-//Futur et En cours
-  // Stream<List<Scrutin>> getActiveScrutins() {
-  //   return FirebaseFirestore.instance
-  //       .collection('scrutins')
-  //       .snapshots()
-  //       .map((snapshot) {
-  //     return snapshot.docs
-  //         .map((doc) {
-  //           var data = doc.data();
-  //           dynamic dateCloture = data['date_cloture'];
-  //           DateTime? dateClotureDT;
 
-  //           if (dateCloture is String) {
-  //             dateClotureDT = DateTime.parse(dateCloture);
-  //           } else if (dateCloture is Timestamp) {
-  //             dateClotureDT = dateCloture.toDate();
-  //           }
-  //           if (dateClotureDT != null &&
-  //               dateClotureDT.isAfter(DateTime.now())) {
-  //             return Scrutin.fromMap(data);
-  //           } else {
-  //             return null;
-  //           }
-  //         })
-  //         .where((scrutin) => scrutin != null)
-  //         .cast<Scrutin>()
-  //         .toList();
-  //   });
-  // }
   //En cours seulement
   Stream<List<Scrutin>> getActiveScrutins() {
     return FirebaseFirestore.instance

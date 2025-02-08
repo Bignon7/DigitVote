@@ -125,18 +125,39 @@ class _MainPageState extends State<MainPage> {
             ),
           ],
         ),
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: CircleAvatar(
+        //       backgroundImage: (imageUrl.isEmpty ||
+        //               !Uri.tryParse(imageUrl)!.isAbsolute)
+        //           ? AssetImage('assets/images/default2.png') as ImageProvider
+        //           : NetworkImage(imageUrl),
+        //       radius: 20,
+        //     ),
+        //   ),
+        // ],
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundImage: (imageUrl.isEmpty ||
-                      !Uri.tryParse(imageUrl)!.isAbsolute)
-                  ? AssetImage('assets/images/default2.png') as ImageProvider
-                  : NetworkImage(imageUrl),
-              radius: 20,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = 3;
+                });
+                _pageController.jumpToPage(3);
+              },
+              child: CircleAvatar(
+                backgroundImage: (imageUrl.isEmpty ||
+                        !Uri.tryParse(imageUrl)!.isAbsolute)
+                    ? AssetImage('assets/images/default2.png') as ImageProvider
+                    : NetworkImage(imageUrl),
+                radius: 20,
+              ),
             ),
           ),
         ],
+
         backgroundColor: Colors.white,
         elevation: 0,
       ),

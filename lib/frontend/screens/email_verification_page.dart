@@ -56,32 +56,6 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     super.dispose();
   }
 
-  // Future<void> _checkEmailVerified() async {
-  //   setState(() => _isLoading = true);
-  //   await Future.delayed(Duration(seconds: 2));
-
-  //   User? user = FirebaseAuth.instance.currentUser;
-  //   await user?.reload();
-
-  //   setState(() {
-  //     _emailVerified = user?.emailVerified ?? false;
-  //     _isLoading = false;
-  //   });
-
-  //   _showAlertDialog(
-  //       _emailVerified ? "Succès" : "Échec",
-  //       _emailVerified
-  //           ? "Votre email a été vérifié !"
-  //           : "Votre email n'est pas encore vérifié.");
-
-  //   if (_emailVerified) {
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => MainPage()),
-  //     );
-  //   }
-  // }
-
   Future<void> _checkEmailVerified() async {
     setState(() => _isLoading = true);
     User? user = FirebaseAuth.instance.currentUser;
@@ -96,15 +70,6 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       }
     }
     setState(() => _isLoading = false);
-
-    // if (_emailVerified) {
-    //   _showAlertDialog("Succès", "Votre email a été vérifié !");
-    //   Navigator.pushAndRemoveUntil(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => MainPage()),
-    //     (route) => false,
-    //   );
-    // }
     if (_emailVerified) {
       try {
         await FirebaseAuth.instance.currentUser?.reload();

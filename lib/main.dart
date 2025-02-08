@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
           create: (_) {
             final userProvider = UserProvider();
             userProvider.fetchUserData(context);
-            userProvider.listenScrutins(); // Utiliser le listener en temps réel
+            userProvider.listenScrutins();
             return userProvider;
           },
         ),

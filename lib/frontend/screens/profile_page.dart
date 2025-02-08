@@ -220,8 +220,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => LoginPage()),
-                                (route) =>
-                                    false, // Supprime toutes les routes précédentes
+                                (route) => false,
                               );
                             },
                       style: ElevatedButton.styleFrom(

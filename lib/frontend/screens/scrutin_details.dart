@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../backend/models/scrutin.dart';
+import '../utils/colors.dart';
 import 'candidat_form.dart';
 import '../utils/custom_loader.dart';
 import 'charts_page.dart';
@@ -11,7 +12,7 @@ import 'candidat_for_scrutin.dart';
 class ScrutinPage extends StatelessWidget {
   final String scrutinId;
 
-  ///Mon dialog là
+  ///demander nombre de candidats
   void _demanderNombreCandidats(BuildContext context) {
     final TextEditingController _nombreController = TextEditingController();
 
@@ -88,7 +89,7 @@ class ScrutinPage extends StatelessWidget {
     );
   }
 
-  ///Mon dialog là
+  ///demander nombre de candidats
   Future<Scrutin> getScrutin(String scrutinId) async {
     DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection('scrutins')
@@ -112,9 +113,17 @@ class ScrutinPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Détails du scrutin'),
+        title: Text(
+          'Détails du scrutin',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -160,6 +169,9 @@ class ScrutinPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(
+                    height: 15,
+                  ),
                   Center(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
