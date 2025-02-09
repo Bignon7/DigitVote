@@ -15,8 +15,10 @@ class NotificationService {
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
     OneSignal.initialize(ONE_SIGNAL_APP_ID);
 
-    // Demander la permission pour les notifications
-    await OneSignal.Notifications.requestPermission(true);
+    final permission = await OneSignal.Notifications.permission;
+    if (permission == false) {
+      await OneSignal.Notifications.requestPermission(true);
+    }
   }
 
   static Future<void> sendWelcomeNotification(

@@ -150,7 +150,9 @@ class _CandidatPageState extends State<CandidatPage> {
       _nomController.clear();
       _descriptionController.clear();
       _imageController.clear();
+      _imageController.text = "Aucune image sélectionnée";
       setState(() {
+        _selectedImage = null;
         imagePath = 'assets/images/default2.png';
       });
       widget.onSave(true);
@@ -360,21 +362,42 @@ class _CandidatPageState extends State<CandidatPage> {
                     ),
                   ),
                   const SizedBox(width: 20),
+                  // GestureDetector(
+                  //   onTap: _isLoading ? null : saveCandidat,
+                  //   child: Container(
+                  //     width: 40,
+                  //     height: 40,
+                  //     decoration: const BoxDecoration(
+                  //       shape: BoxShape.circle,
+                  //       color: Color(0xFF2FB364),
+                  //     ),
+                  //     child: _isLoading
+                  //         ? const CircularProgressIndicator(color: Colors.white)
+                  //         : const Icon(
+                  //             Icons.save,
+                  //             color: Colors.white,
+                  //             size: 20,
+                  //           ),
+                  //   ),
+                  // ),
                   GestureDetector(
                     onTap: _isLoading ? null : saveCandidat,
                     child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF2FB364),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 18),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2FB364),
+                        borderRadius: BorderRadius.circular(50),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Icon(
-                              Icons.save,
-                              color: Colors.white,
-                              size: 20,
+                          : const Text(
+                              "Ajouter",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                //fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                   ),

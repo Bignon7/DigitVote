@@ -30,20 +30,23 @@ android {
         versionName = flutter.versionName
     }
 
-        signingConfigs {
+       signingConfigs {
         release {
-            storeFile file("keystore.jks")  
-            storePassword "Thytaine7!2025"   
-            keyAlias "Thytaine7!2025"           
-            keyPassword "Thytaine7!2025" 
+            keyAlias "key"
+            keyPassword "KeystorePassword"
+            storeFile file("my-release-key.keystore")
+            storePassword "KeystorePassword"
         }
     }
-
     buildTypes {
         release {
             signingConfig signingConfigs.release
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
 
     // buildTypes {
     //     release {

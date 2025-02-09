@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -10,6 +11,8 @@ import './frontend/screens/welcome_page.dart';
 import '../../backend/services/notification_service.dart';
 import '../../backend/services/scrutin_notification_manager.dart';
 import 'dart:core';
+
+import 'frontend/screens/main_page.dart';
 
 void main() async {
   const supabaseUrl = 'https://aazzaadoagikcnvicxll.supabase.co';
@@ -73,10 +76,23 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => WelcomePage()),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => WelcomePage()),
+      // );
+      firebase_auth.User? user =
+          firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainPage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => WelcomePage()),
+        );
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
