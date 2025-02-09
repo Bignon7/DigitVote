@@ -1,4 +1,4 @@
-# digit_vote
+# Votify
 
 A new Flutter project.
 
